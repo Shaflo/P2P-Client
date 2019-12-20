@@ -12,13 +12,13 @@
 
 #### Join Network
 ```
-new Client → Leader (*EntryMSG*):    
+new Client → Leader (EntryMSG):    
 Tag: 1 (1 byte)  
 Version: 0 (1 byte)  
 IPv4+Port (6 byte)  
 ```
 ```
-Leader → new Client (*EntryResponseMsg*):   
+Leader → new Client (EntryResponseMsg):   
 Tag: 2 (1 byte)  
 Version: 1 (1 byte)  
 ID (2 byte / Leader give IDs from 1-25)  
@@ -26,27 +26,27 @@ ID (2 byte / Leader give IDs from 1-25)
 ```
 #### Know other Peers
 ```
-Peer1 → Peer2 (*NodeRequestMsg*):  
+Peer1 → Peer2 (NodeRequestMsg):  
 Tag: 3 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
 ```
 ```
-Peer2 → Peer1 (*NodeResponseMsg*):  
+Peer2 → Peer1 (NodeResponseMsg):  
 Tag: 4 (1 byte)  
 Version: 1 (1 byte)  
 4 * IPv4+Port+ID (4 * 8 byte)  
 ```
 #### Heartbeat
 ```
-Peer → Server (*IAmAliveMsg*):  
+Peer → Server (IAmAliveMsg):  
 Tag: 5 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
 ```
 #### Search ID
 ```
-Peer1 → Peer2 (*NodeSearchMsg*):  
+Peer1 → Peer2 (NodeSearchMsg):  
 Tag: 6 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port (6 byte)  
@@ -55,7 +55,7 @@ SearchID (2 byte / given by Peer who start search)
 DestinationID (2 byte / PeerID who is searched)  
 ```
 ```
-DestinationPeer → AskingPeer (*IAmFoundMsg*):  
+DestinationPeer → AskingPeer (IAmFoundMsg):  
 Tag: 7 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)    
@@ -63,7 +63,7 @@ SearchID (2 byte / copy from Tag 6 message)
 ```
 #### Message
 ```
-Peer → Peer (*TextMsg*):   
+Peer → Peer (TextMsg):   
 Tag: 8 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
@@ -72,13 +72,13 @@ Msg (xbyte)
 ```
 #### Leader Election
 ```
-Peer → Peer (*AreYouAliveMsg*):  
+Peer → Peer (AreYouAliveMsg):  
 Tag: 9 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
 ```
 ```
-Peer → Peer (*IAmLeaderMsg*):  
+Peer → Peer (IAmLeaderMsg):  
 Tag: 10 (1 byte)  
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
