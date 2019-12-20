@@ -4,6 +4,7 @@
 - Port: 3333
 - Type: Unstructed Network
 - Join network over Lead Peer
+- Peer list with max 4 Peers
 
 ## Definition
 
