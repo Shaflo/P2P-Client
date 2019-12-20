@@ -5,8 +5,6 @@
 - Type: Unstructed Network
 - Join network over Lead Peer
 
----
-
 ## Definition
 
 Client→Server:  
@@ -84,13 +82,18 @@ ID (2byte)
 Ablauf Suche:  
 - Peer fragt die Nachbarn  
 - Fall 1: Nachbar hat SearchID bekommen  
-- Fall 2: Nachbar hat SearchID nicht bekommen◦bin ich der Knoten? → Antwort an Suchenden◦Bin ich nicht der Knoten → Nachricht an alle meine Nachbarn, außer SuchendenListe
+- Fall 2: Nachbar hat SearchID nicht bekommen
+2.1 bin ich der Knoten?  
+→ Antwort an Suchenden  
+2.2 Bin ich nicht der Knoten  
+→ Nachricht an alle meine Nachbarn, außer SuchendenListe  
 
 IDs:- von 1 – 25  
 
 Ablauf Leader Election:  
 - Peer fragt nacheinander alle Peers an, die eine höhere ID haben, bis einer antwortet* schickt Tag 9 und lässt die Verbindung offen  
-- angefragter Peer antwortet an Peer mit Tag 5 und sendet Anfrage an alle Peers mit höherer ID, bei Antwort durch Peer mit höherer ID → fragender Peer wird nicht Leader- wenn keine Antwort von höherer ID oder höhere existiert nicht, Nachricht “I am leader”an alle
+- angefragter Peer antwortet an Peer mit Tag 5 und sendet Anfrage an alle Peers mit höherer ID, bei Antwort durch Peer mit höherer ID → fragender Peer wird nicht Leader
+- wenn keine Antwort von höherer ID oder höhere existiert nicht, Nachricht “I am leader”an alle
 
 Hinweise:  
 SourceID: ID des suchenden Knoten  
