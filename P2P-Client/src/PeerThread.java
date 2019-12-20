@@ -1,13 +1,9 @@
 class PeerThread implements Runnable {
 	
-	int port;
-	String leader;
-	P2P obj;
+	P2P peer;
 	
-	PeerThread(P2P p2p) {
-		this.leader = P2P.leader;
-		this.port = P2P.port;
-		this.obj = p2p;
+	PeerThread(P2P _peer) {
+		this.peer = _peer;
 	}
 	
 	public void run() {
@@ -37,7 +33,7 @@ class PeerThread implements Runnable {
 				if (timeA >= sendA) {									// sending alive
 					timeA = 0;
 					try {
-						this.obj.sendMSG(this.leader, this.port, this.obj.getMSG(5, null));
+						this.peer.sendMSG(this.peer.leader, this.peer.port, this.peer.getMSG(5, null));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

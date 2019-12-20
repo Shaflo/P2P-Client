@@ -3,18 +3,16 @@ import java.net.*;
 
 class ServerThread implements Runnable {
 	
-	int port;
 	P2P peer;
 	
-	ServerThread(int _port, P2P _peer) {
-		this.port = _port;
+	ServerThread(P2P _peer) {
 		this.peer = _peer;
 	}
 	
 	public void run() {
 		try {
 			@SuppressWarnings("resource")
-			ServerSocket welcomeSocket = new ServerSocket(this.port);
+			ServerSocket welcomeSocket = new ServerSocket(this.peer.port);
 			while (true) {
 				Socket connectionSocket = welcomeSocket.accept();
 				System.out.println("SERVER: " + connectionSocket.getInetAddress() + ":" + connectionSocket.getPort() + " connected!");

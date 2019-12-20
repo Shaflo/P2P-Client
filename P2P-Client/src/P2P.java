@@ -19,10 +19,12 @@ class P2P implements ActionListener {
 			/************/
 	
 	/* Settings */
-	static String leader = "localhost";					// localhost = this peer is leader
-	static int port = 3333;
 	static int maxKnownPeers = 4;
+	static int peerIDs = 1000;
 	
+	
+	String leader;					// localhost = this peer is leader
+	int port;
 	boolean isLeader;
 	boolean connected;
 	String localIPS;
@@ -30,10 +32,9 @@ class P2P implements ActionListener {
 	byte[] localPortA;
 	byte[] localIDA;
 	byte[][] peerList;
-	static int peerIDs = 1000;
-	static int searchID = 1000;
+	int searchID;
+
 	LinkedList<byte[]> searches;
-	
 	
 	
 			/***********/
@@ -74,7 +75,7 @@ class P2P implements ActionListener {
 	JLabel listL;
 	JTextArea listTA;
 	
-	private P2P() {
+	private P2P(int _port, String _leader) {
 		/* GUI */
 		// new GUI
 		this.frame = new JFrame();
@@ -140,7 +141,10 @@ class P2P implements ActionListener {
 		this.frame.setVisible(true);
 		
 		/* INIT */
-		if (leader.equals("localhost")) {
+		this.port = _port;
+		this.leader = _leader;
+		this.searchID = 1000;
+		if (this.leader.equals("localhost")) {
 			this.isLeader = true;
 			this.leaderStatus.setBackground(Color.GREEN);
 		} else {
@@ -252,7 +256,7 @@ class P2P implements ActionListener {
 	
 	public static void main(String[] args) throws Exception {
 		
-		P2P peer = new P2P();
+		P2P peer = new P2P(3333, "localhost");
 		peer.startPeer();
 	}
 	
@@ -267,7 +271,7 @@ class P2P implements ActionListener {
 		this.newLog("sys", "Peer IP: " + this.localIPS + "\n");
 		
 		/* STARTING SERVER THREAD */
-		ServerThread server = new ServerThread(port, this);
+		ServerThread server = new ServerThread(this);
 		new Thread(server).start();
 		
 		/* CONNECTING TO LEADER */
@@ -729,6 +733,13 @@ class P2P implements ActionListener {
 		}
 		
 	}
+	
+	void setLocalPortA() {
+		byte[] res = {(byte)(port >>> 8), (byte)(port)};
+		this.localPortA[0] = res[0];
+		this.localPortA[1] = res[1];
+	}
+	
 	static int twoToInt(byte[] i) {
 		int res = ((i[0]&0xFF) << 8) | (i[1]&0xFF);
 		return res;
@@ -739,9 +750,5 @@ class P2P implements ActionListener {
 		return res;
 	}
 	
-	void setLocalPortA() {
-		byte[] res = {(byte)(port >>> 8), (byte)(port)};
-		this.localPortA[0] = res[0];
-		this.localPortA[1] = res[1];
-	}
+	
 }
