@@ -178,7 +178,8 @@ class P2P implements ActionListener {
 		/* START SEARCH */
 		if (ae.getSource() == this.startSearch) {
 			this.searchStat.setBackground(Color.RED);
-			if (!(this.searchTF.getText().equals(""))) {
+			if (Integer.parseInt(this.searchTF.getText()) > (firstIndexID-1) &&
+					Integer.parseInt(this.searchTF.getText()) < (lastIndexID+1)) {
 				int i = Integer.parseInt(this.searchTF.getText());
 				byte[] rec = new byte[14];
 				byte[] help = twoToByte(i);
@@ -319,7 +320,7 @@ class P2P implements ActionListener {
 	
 	byte[] handleMSG(byte[] rec) {
 		
-		if (rec[0] == 1 && this.isLeader) {																		// R 1
+		if (rec[0] == 1 && this.isLeader) {																	// R 1
 			if (this.isLeader) {
 				System.out.println("SERVER: R 1 <--- " + Arrays.toString(rec));
 				return this.getMSG(2, rec); // getMSG 2 added in list
@@ -328,7 +329,7 @@ class P2P implements ActionListener {
 			}
 		}
 		
-		else if (rec[0] == 2) {																					// R 2
+		else if (rec[0] == 2) {																				// R 2
 			System.out.println("CLIENT: R 2 <--- " + Arrays.toString(rec));
 			
 			byte[] bla = {rec[2], rec[3]};
@@ -349,14 +350,14 @@ class P2P implements ActionListener {
 			return null;
 		}
 		
-		else if (rec[0] == 3) {																					// R 3
+		else if (rec[0] == 3) {																				// R 3
 			System.out.println("PEER: R 3 <--- " + Arrays.toString(rec));
 			byte[] newP = {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], 1};
 			this.addList(newP);
 			return this.getMSG(4, rec);
 		}
 		
-		else if (rec[0] == 4) {																					// R 4
+		else if (rec[0] == 4) {																				// R 4
 			System.out.println("PEER: R 4 <--- " + Arrays.toString(rec));
 			byte[] newP1 = {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], 1};
 			byte[] newP2 = {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17], 1};
@@ -369,12 +370,12 @@ class P2P implements ActionListener {
 			return null;
 		}
 		
-		else if (rec[0] == 5) {																					// R 5
+		else if (rec[0] == 5) {																				// R 5
 			System.out.println("SERVER: R 5 <--- " + Arrays.toString(rec));
 			return null;
 		}
 		
-		else if (rec[0] == 6) {																					// R 6
+		else if (rec[0] == 6) {																				// R 6
 			System.out.println("PEER: R 6 <--- " + Arrays.toString(rec));
 			if(rec[12] == this.idA[0] && rec[13] == this.idA[1]) { // im found
 				return this.getMSG(7, rec);
@@ -434,27 +435,27 @@ class P2P implements ActionListener {
 			return null;
 		}
 		
-		else if (rec[0] == 7) {																						// R 7
+		else if (rec[0] == 7) {																				// R 7
 			System.out.println("PEER: R 7 <--- " + Arrays.toString(rec));
 			// TODO answer search
 			return null;
 		}
 		
-		else if (rec[0] == 8) {																						// R 8
+		else if (rec[0] == 8) {																				// R 8
 			System.out.println("PEER: R 8 <--- " + Arrays.toString(rec));
 			// TOTO change to string and print
 			return null;
 		}
 		
-		else if (rec[0] == 9) {																						// R 9
+		else if (rec[0] == 9) {																				// R 9
 			System.out.println("[DEBUG] R 9");
 		}
 		
-		else if (rec[0] == 10) {																					// R 10
+		else if (rec[0] == 10) {																			// R 10
 			System.out.println("[DEBUG] R 10");
 		}
 		
-		System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));									// ERROR
+		System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));							// ERROR
 		return null;
 	}
 	
@@ -466,14 +467,14 @@ class P2P implements ActionListener {
 	
 	byte[] getMSG(int tag, byte[] rec) {
 		
-		if (tag == 1) {																								// S 1
+		if (tag == 1) {																						// S 1
 			byte[] msg = {1, 0,
 				this.ipA[0], this.ipA[1] , this.ipA[2], this.ipA[3],
 				this.portA[0], this.portA[1]};
 			return msg;
 		}
 		
-		else if (tag == 2) {																						// S 2
+		else if (tag == 2) {																				// S 2
 			byte[] msg = new byte[36];
 			msg[0] = (byte) 2;
 			msg[1] = (byte) 1;
@@ -497,7 +498,7 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 3) {																						// S 3
+		else if (tag == 3) {																				// S 3
 			byte[] msg = {3, 1,
 					this.ipA[0], this.ipA[1], this.ipA[2], this.ipA[3],
 					this.portA[0], this.portA[1],
@@ -505,7 +506,7 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 4) {																						// S 4
+		else if (tag == 4) {																				// S 4
 			byte[] msg = new byte[34];
 			msg[0] = 4;
 			msg[1] = 1;
@@ -524,7 +525,7 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 5) {																						// S 5
+		else if (tag == 5) {																				// S 5
 			byte[] msg = {5, 1,
 					this.ipA[0], this.ipA[1] , this.ipA[2], this.ipA[3],
 					this.portA[0], this.portA[1],
@@ -532,7 +533,7 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 6) {																						// S 6
+		else if (tag == 6) {																				// S 6
 			byte[] sID = twoToByte(searchID);
 			byte[] msg = {6, 1,
 					rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9],
@@ -540,7 +541,7 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 7) {																						// S 7
+		else if (tag == 7) {																				// S 7
 			byte[] msg = {7, 1,
 					this.ipA[0], this.ipA[1], this.ipA[2], this.ipA[3],
 					this.portA[0], this.portA[1], this.idA[0], this.idA[1],
@@ -548,7 +549,7 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 8) {																						// S 8
+		else if (tag == 8) {																				// S 8
 			byte[] msg = new byte[12+rec.length];
 			msg[0] = 8;
 			msg[1] = 1;
@@ -567,15 +568,15 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		else if (tag == 9) {																						// S 9
+		else if (tag == 9) {																				// S 9
 			System.out.println("[DEBUG] G 9");
 		}
 		
-		else if (tag == 10) {																						// S 10
+		else if (tag == 10) {																				// S 10
 			System.out.println("[DEBUG] G 10");
 		}
 		
-		System.out.println("!!!!!!!!!!!!!!!!!!!ERROR: getMSG TAG: " + tag);											// ERROR
+		System.out.println("!!!!!!!!!!!!!!!!!!!ERROR: getMSG TAG: " + tag);									// ERROR
 		return null;
 	}
 	
