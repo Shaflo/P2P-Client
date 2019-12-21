@@ -7,6 +7,7 @@
 - Peer list with max 4 Peers
 - sending Messages in Byte Array
 - Heartbeat (min. 1 per minute to leader)
+- unique IDs for every Peer
 
 ## Messages
 
