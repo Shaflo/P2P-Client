@@ -19,232 +19,228 @@ class P2P implements ActionListener {
 			/************/
 	
 	/* Settings */
+	static int defaultPort = 3333;
 	static int maxKnownPeers = 4;
-	static int peerIDs = 1000;
+	static int peerIDs = 1000;			// delete
+	static int firstIndexID = 1000;
+	static int lastIndexID = 1025;
 	
-	
-	String leader;					// localhost = this peer is leader
-	int port;
-	boolean isLeader;
+	/* Peer */
 	boolean connected;
-	String localIPS;
-	byte[] localIPA;
-	byte[] localPortA;
-	byte[] localIDA;
-	byte[][] peerList;
+	String leader;
+	boolean isLeader;
+	String ip;
+	byte[] ipA;
+	int port;
+	byte[] portA;
+	int id;
+	byte[] idA;
+	byte[][] list;
 	int searchID;
-
 	LinkedList<byte[]> searches;
 	
-	
-			/***********/
-			/*   GUI   */
-			/***********/
-	
-	JPanel infoPane = new JPanel();
-	JPanel sysP = new JPanel();						// SysLog
-	JLabel sysL = new JLabel("SysLog");
-	JTextArea sysTA = new JTextArea();
-	
-	
-	JPanel chatP = new JPanel();					// MsgBox
-	JLabel chatL = new JLabel("incoming message");
-	JTextArea chatTA = new JTextArea();
-	JPanel msgP = new JPanel();						// Chat
-	JLabel idL = new JLabel("ID:");
-	JTextField idTF = new JTextField();
-	JLabel msgL = new JLabel("Message");
-	JButton sendB = new JButton("send");
-	JTextField msgTF = new JTextField();
-	
-	// JFrame+contentpane bleibt
+	/* GUI */
 	JFrame frame;
 	JPanel contentPane;
-	JPanel headerPane; 				// HEADER
-	JLabel headerTF;
-	JPanel statusPanel;				// STAUS
+	JPanel statusPanel;				// Status Panel
 	JTextField connectStatus;
 	JTextField leaderStatus;
 	JPanel midPanel;				// MID Panel
-	JPanel infoPanel;		// infoPane
+	JPanel infoPanel;				// Peer Panel
 	JLabel infoHeader;
 	JLabel infoID;
 	JLabel infoIP;
 	JLabel infoPort;
-	JPanel listP;					// Peer-List
+	JPanel listP;					// List Panel
 	JLabel listL;
 	JTextArea listTA;
+	JPanel searchP;					// Search Panel
+	JTextField searchStat;
+	JTextField searchTF;
+	JButton startSearch;
+	JPanel electPanel;				// Election Panel
+	JLabel electLabel;
+	JTextField electStat;
+	JButton electButton;
 	
 	private P2P(int _port, String _leader) {
+		
 		/* GUI */
-		// new GUI
-		this.frame = new JFrame();
-		this.frame.setSize(800, 500);
+		this.frame = new JFrame("P2P-Client");
+		this.frame.setSize(500, 300);
 		this.contentPane = new JPanel();
 		this.contentPane.setLayout(new BoxLayout(this.contentPane, BoxLayout.Y_AXIS));
-		this.headerTF = new JLabel("P2P-Client");
-		this.headerPane = new JPanel();
-		this.headerPane.add(this.headerTF);
-		this.contentPane.add(this.headerPane);
-		this.connectStatus = new JTextField("         connected");								// Status Panel
+		this.connectStatus = new JTextField("         connected");													// Status Panel
 		this.connectStatus.setBackground(Color.RED);
-		//this.connectStatus.setColumns(10);
-		//this.connectStatus.setMaximumSize(this.connectStatus.getPreferredSize()); // setzt die groesse
 		this.leaderStatus = new JTextField("          leader");
 		this.statusPanel = new JPanel();
 		this.statusPanel.setLayout(new BoxLayout(this.statusPanel, BoxLayout.X_AXIS));
 		this.statusPanel.add(this.connectStatus);
 		this.statusPanel.add(this.leaderStatus);
 		this.contentPane.add(this.statusPanel);
-		
-		this.infoPane = new JPanel();
-		this.infoPane.setLayout(new BoxLayout(this.infoPane, BoxLayout.Y_AXIS));
-		this.infoHeader = new JLabel("              PEER                                                                                                                  ");
-		this.infoPane.add(this.infoHeader);
-
+		this.infoPanel = new JPanel();																				// Peer Panel
+		this.infoPanel.setLayout(new BoxLayout(this.infoPanel, BoxLayout.Y_AXIS));
+		this.infoHeader = new JLabel("              PEER                                                    ");
+		this.infoPanel.add(this.infoHeader);
 		this.infoID = new JLabel("   ID: ");
-		this.infoPane.add(this.infoID);
+		this.infoPanel.add(this.infoID);
 		this.infoIP = new JLabel("   IP: ");
-		this.infoPane.add(this.infoIP);
+		this.infoPanel.add(this.infoIP);
 		this.infoPort = new JLabel("   Port: ");
-		this.infoPane.add(this.infoPort);
+		this.infoPanel.add(this.infoPort);
 		this.midPanel = new JPanel();
 		this.midPanel.setLayout(new BoxLayout(this.midPanel, BoxLayout.X_AXIS));
-		this.midPanel.add(this.infoPane);
-		this.contentPane.add(this.midPanel);
-		
-		this.listP = new JPanel();
+		this.midPanel.add(this.infoPanel);
+		this.listP = new JPanel();																					// List Panel
 		this.listP.setLayout(new BoxLayout(this.listP, BoxLayout.Y_AXIS));
 		this.listL = new JLabel("Node-List");
 		this.listP.add(this.listL);
 		this.listTA = new JTextArea();
 		this.listP.add(this.listTA);
 		this.midPanel.add(this.listP);
-		
-		
-		//old GUI
-		
-		this.chatP.add(this.chatL);												// Message
-		this.chatP.add(this.chatTA);
-		this.msgP.add(this.idL);												// Chat
-		this.idTF.setColumns(3);
-		this.msgP.add(this.idTF);
-		this.msgP.add(this.msgL);
-		this.msgTF.setColumns(30);
-		this.msgP.add(this.msgTF);
-		this.sendB.addActionListener(this);
-		this.msgP.add(this.sendB);
-		this.contentPane.add(this.msgP);
-		
-		
+		this.contentPane.add(this.midPanel);
+		this.searchP = new JPanel();																				// Search Panel
+		this.searchP.setLayout(new BoxLayout(this.searchP, BoxLayout.X_AXIS));
+		this.searchStat = new JTextField();
+		this.searchStat.setColumns(2);
+		this.searchStat.setMaximumSize(this.searchStat.getPreferredSize());
+		this.searchStat.setBackground(Color.GRAY);
+		this.searchP.add(this.searchStat);
+		this.searchTF = new JTextField();
+		this.searchTF.setColumns(3);
+		this.searchTF.setMaximumSize(this.searchTF.getPreferredSize());
+		this.searchP.add(this.searchTF);
+		this.startSearch = new JButton("search");
+		this.startSearch.addActionListener(this);
+		this.searchP.add(this.startSearch);
+		this.contentPane.add(this.searchP);
+		this.electPanel = new JPanel();																				// Election Panel
+		this.electPanel.setLayout(new BoxLayout(this.electPanel, BoxLayout.X_AXIS));
+		this.electLabel = new JLabel("Leader Election: ");
+		this.electPanel.add(this.electLabel);
+		this.electStat = new JTextField("no voting");
+		this.electStat.setColumns(10);
+		this.electStat.setMaximumSize(this.electStat.getPreferredSize());
+		this.electStat.setBackground(Color.GRAY);
+		this.electPanel.add(this.electStat);
+		this.electButton = new JButton("start Voting");
+		this.electButton.addActionListener(this);
+		this.electPanel.add(this.electButton);
+		this.contentPane.add(this.electPanel);
 		this.frame.setContentPane(this.contentPane);
 		this.frame.setVisible(true);
 		
 		/* INIT */
-		this.port = _port;
-		this.leader = _leader;
-		this.searchID = 1000;
-		if (this.leader.equals("localhost")) {
+		this.connected = false;										// Connection Status
+		this.leader = _leader;										// Leader
+		if (this.leader.equals("localhost")) {						// Leader Status
 			this.isLeader = true;
 			this.leaderStatus.setBackground(Color.GREEN);
 		} else {
 			this.isLeader = false;
 			this.leaderStatus.setBackground(Color.RED);
 		}
-		this.connected = false;
-		this.localIPS = this.getLocalIPS();
-		this.infoIP.setText("   IP: " + this.localIPS);
-		this.infoPort.setText("   Port: " + Integer.toString(port));
-		this.localIPA = new byte[4];
-		this.setLocalIPA();
-		this.localPortA = new byte[2];
-		this.setLocalPortA();
-		this.localIDA = new byte[2];
-		this.peerList = new byte[maxKnownPeers][9];
-		for (int i = 0; i < peerList.length; i++) {
-			for (int j = 0; j < peerList.length; j++) {
-				this.peerList[i][j] = 0;
+		this.ip = this.getLocalIP();								// IP String
+		this.ipA = new byte[4];										// IP Byte Array
+		String[] tempSA = this.ip.split("\\.");
+		for (int i = 0; i < 4; i++) {
+			this.ipA[i] = (byte) Integer.parseInt(tempSA[i]);
+		}
+		this.port = _port;											// Port Integer
+		this.portA = new byte[2];									// Port Byte Array
+		byte[] tempB = twoToByte(this.port);
+		this.portA[0] = tempB[0];
+		this.portA[1] = tempB[1];
+		this.id = 0;												// ID Integer
+		this.idA = new byte[2];										// ID Byte Array
+		this.list = new byte[maxKnownPeers][9];						// Peer list
+		for (int i = 0; i < this.list.length; i++) {
+			for (int j = 0; j < this.list.length; j++) {
+				this.list[i][j] = 0;
 			}
 		}
-		this.searches = new LinkedList<byte[]>();
+		this.searchID = firstIndexID;								// searchIDs
+		this.searches = new LinkedList<byte[]>();					// search List
+		
+		/*   Update Dashboard   */
+		this.infoIP.setText("   IP: " + this.ip);
+		this.infoPort.setText("   Port: " + Integer.toString(port));
 	}
+	
+	
+	
+			/*****************/
+			/*   GUI EVENT   */
+			/*****************/
 	
 	@Override
 	public void actionPerformed(ActionEvent ae) {
-		if (ae.getSource() == this.sendB) {
-			this.msgTF.setBackground(Color.RED);
-			if (!(this.idTF.getText().equals(""))) {
-				int i = Integer.parseInt(this.idTF.getText());
+		/* START SEARCH */
+		if (ae.getSource() == this.startSearch) {
+			this.searchStat.setBackground(Color.RED);
+			if (!(this.searchTF.getText().equals(""))) {
+				int i = Integer.parseInt(this.searchTF.getText());
 				byte[] rec = new byte[14];
 				byte[] help = twoToByte(i);
 				rec[12] = help[0];
 				rec[13] = help[1];
-				rec[2] = this.localIPA[0];
-				rec[3] = this.localIPA[1];
-				rec[4] = this.localIPA[2];
-				rec[5] = this.localIPA[3];
-				rec[6] = this.localPortA[0];
-				rec[7] = this.localPortA[1];
-				rec[8] = this.localIDA[0];
-				rec[9] = this.localIDA[1];
+				rec[2] = this.ipA[0];
+				rec[3] = this.ipA[1];
+				rec[4] = this.ipA[2];
+				rec[5] = this.ipA[3];
+				rec[6] = this.portA[0];
+				rec[7] = this.portA[1];
+				rec[8] = this.idA[0];
+				rec[9] = this.idA[1];
 				String node1 = "";
 				String node2 = "";
 				String node3 = "";
 				String node4 = "";
 				rec = this.getMSG(6, rec);
-				if (this.peerList[0][0] != 0) {						
-					node1 = "" + (this.peerList[0][0]&0xFF) + "."
-							+ (this.peerList[0][1]&0xFF) + "." + (this.peerList[0][2]&0xFF) + "."
-							+ (this.peerList[0][3]&0xFF);
+				if (this.list[0][0] != 0) {						
+					node1 = "" + (this.list[0][0]&0xFF) + "."
+							+ (this.list[0][1]&0xFF) + "." + (this.list[0][2]&0xFF) + "."
+							+ (this.list[0][3]&0xFF);
 				}
-				if (this.peerList[1][0] != 0) {
-					node2 = "" + (this.peerList[1][0]&0xFF) + "."
-							+ (this.peerList[1][1]&0xFF) + "." + (this.peerList[1][2]&0xFF) + "."
-							+ (this.peerList[1][3]&0xFF);
+				if (this.list[1][0] != 0) {
+					node2 = "" + (this.list[1][0]&0xFF) + "."
+							+ (this.list[1][1]&0xFF) + "." + (this.list[1][2]&0xFF) + "."
+							+ (this.list[1][3]&0xFF);
 				}
-				if (this.peerList[2][0] != 0) {
-					node3 = "" + (this.peerList[2][0]&0xFF) + "."
-							+ (this.peerList[2][1]&0xFF) + "." + (this.peerList[2][2]&0xFF) + "."
-							+ (this.peerList[2][3]&0xFF);
+				if (this.list[2][0] != 0) {
+					node3 = "" + (this.list[2][0]&0xFF) + "."
+							+ (this.list[2][1]&0xFF) + "." + (this.list[2][2]&0xFF) + "."
+							+ (this.list[2][3]&0xFF);
 				}
-				if (this.peerList[3][0] != 0) {
-					node4 = "" + (this.peerList[3][0]&0xFF) + "."
-							+ (this.peerList[3][1]&0xFF) + "." + (this.peerList[3][2]&0xFF) + "."
-							+ (this.peerList[3][3]&0xFF);
+				if (this.list[3][0] != 0) {
+					node4 = "" + (this.list[3][0]&0xFF) + "."
+							+ (this.list[3][1]&0xFF) + "." + (this.list[3][2]&0xFF) + "."
+							+ (this.list[3][3]&0xFF);
 				}
 				this.searches.add(new byte[] {rec[8], rec[9], rec[10], rec[11]});
 				try {
 					if (node1.length() > 3)
-						this.sendMSG(node1, port, rec);
+						this.sendMSG(node1, this.port, rec);
 					if (node2.length() > 3)
-						this.sendMSG(node2, port, rec);
+						this.sendMSG(node2, this.port, rec);
 					if (node3.length() > 3)
-						this.sendMSG(node3, port, rec);
+						this.sendMSG(node3, this.port, rec);
 					if (node4.length() > 3)
-						this.sendMSG(node4, port, rec);
+						this.sendMSG(node4, this.port, rec);
 				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} else {
 				System.out.println("!!!ERROR: keine geultige ID eingetragen!");
 			}
 		}
-	}
-	
-	
-	
-			/*****************/
-			/*   Dashboard   */
-			/*****************/
-	
-	public void newLog(String log, String msg) {
-		if (log.equals("list")) {
-			this.listTA.append(msg);
-			this.listTA.setCaretPosition(this.listTA.getDocument().getLength());
+		
+		/* START LEADER ELECTION*/
+		if (ae.getSource() == this.electButton) {
+			this.electStat.setBackground(Color.GREEN);
+			this.electStat.setText("voting...");
 		}
 	}
 	
@@ -267,81 +263,24 @@ class P2P implements ActionListener {
 			/******************/
 	
 	private void startPeer() {
-		/* PRINT LocalIP */
-		this.newLog("sys", "Peer IP: " + this.localIPS + "\n");
 		
-		/* STARTING SERVER THREAD */
+		/* SERVER THREAD */
 		ServerThread server = new ServerThread(this);
 		new Thread(server).start();
 		
-		/* CONNECTING TO LEADER */
-		while (!this.connected) {
-			if (!this.connected) {
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException ie) {
-					System.out.println("!P2PClient1 InterruptedException!");
-					ie.printStackTrace();
-				}
-			}
-			this.newLog("sys", "try to connect to leader...\n");
-			try {
-				this.sendMSG(leader, port, this.getMSG(1, null));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+		/* PEER THREAD*/
+		PeerThread peer = new PeerThread(this);
+		new Thread(peer).start();
 		
-		/* SHOW LIST */
+		/* SHOW PEER LIST*/
 		this.showList();
-
-		/*
-		 * 			INIT PEERTHREAD
-		 */
-		
-		PeerThread peer = new PeerThread(this);	// Thread: Peer
-		new Thread(peer).start();				// Thread: Peer start
-		
-		/*
-		 * 			SENDING CHAT-MESSAGES
-		 */
-		
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException ie) {
-			System.out.println("!P2PClient1 InterruptedException!");
-			ie.printStackTrace();
-		}
-		
-		
-		
-		/*
-		while (true) {
-			try {
-				InputStreamReader isr = new InputStreamReader(System.in);
-			    BufferedReader br = new BufferedReader(isr);
-			    //System.out.println("Empfaenger IP eingeben:");
-			    String destinationIP = br.readLine();
-			    System.out.println("Nachricht fuer " + destinationIP + " eingeben:");
-			    String message = br.readLine();
-			    System.out.println("will send " + message + " to " + destinationIP);
-			} catch (IOException e) {
-				this.newLog("sys", "fail");
-				e.printStackTrace();
-				return;
-			}
-		}*/
 	}
 	
 	
 	
-			/***************/
-			/*   MESSAGE   */
-			/***************/
-	
-	/*
-	 * 		SENDING AND RECEIVING MSG
-	 */
+			/********************/
+			/*   SEND MESSAGE   */
+			/********************/
 	
 	void sendMSG(String hostname, int port, byte[] msg) throws UnknownHostException, IOException {
 		Socket sock;
@@ -372,20 +311,24 @@ class P2P implements ActionListener {
 		sock.close();
 	}
 	
-	/*
-	 * 		HANDLE MSG
-	 */
+	
+	
+			/**********************/
+			/*   HANDLE MESSAGE   */
+			/**********************/
 	
 	byte[] handleMSG(byte[] rec) {
 		
-		/*   TAG 1   */
-		if (rec[0] == 1 && this.isLeader) {
-			System.out.println("SERVER: R 1 <--- " + Arrays.toString(rec));
-			return this.getMSG(2, rec); // getMSG 2 added in list
+		if (rec[0] == 1 && this.isLeader) {																		// R 1
+			if (this.isLeader) {
+				System.out.println("SERVER: R 1 <--- " + Arrays.toString(rec));
+				return this.getMSG(2, rec); // getMSG 2 added in list
+			} else {
+				System.out.println("<--- R 1 BUT IM NOT LEADER!!!!!!!!!!!!!!");
+			}
 		}
 		
-		/*   TAG 2   */
-		else if (rec[0] == 2) {
+		else if (rec[0] == 2) {																					// R 2
 			System.out.println("CLIENT: R 2 <--- " + Arrays.toString(rec));
 			
 			byte[] bla = {rec[2], rec[3]};
@@ -393,9 +336,8 @@ class P2P implements ActionListener {
 			
 			this.connected = true;
 			this.connectStatus.setBackground(Color.green);
-			this.newLog("sys", "connected!");
-			this.localIDA[0] = rec[2];
-			this.localIDA[1] = rec[3];
+			this.idA[0] = rec[2];
+			this.idA[1] = rec[3];
 			byte[] newP1 = {rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], rec[10], rec[11], 1};
 			byte[] newP2 = {rec[12], rec[13], rec[14], rec[15], rec[16], rec[17], rec[18], rec[19], 1};
 			byte[] newP3 = {rec[20], rec[21], rec[22], rec[23], rec[24], rec[25], rec[26], rec[27], 1};
@@ -407,16 +349,14 @@ class P2P implements ActionListener {
 			return null;
 		}
 		
-		/*   TAG 3   */
-		else if (rec[0] == 3) {
+		else if (rec[0] == 3) {																					// R 3
 			System.out.println("PEER: R 3 <--- " + Arrays.toString(rec));
 			byte[] newP = {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], 1};
 			this.addList(newP);
 			return this.getMSG(4, rec);
 		}
 		
-		/*   TAG 4   */
-		else if (rec[0] == 4) {
+		else if (rec[0] == 4) {																					// R 4
 			System.out.println("PEER: R 4 <--- " + Arrays.toString(rec));
 			byte[] newP1 = {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], 1};
 			byte[] newP2 = {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17], 1};
@@ -429,17 +369,14 @@ class P2P implements ActionListener {
 			return null;
 		}
 		
-		/*   TAG 5   */
-		else if (rec[0] == 5) {
+		else if (rec[0] == 5) {																					// R 5
 			System.out.println("SERVER: R 5 <--- " + Arrays.toString(rec));
-			// TODO aktualisiere Listpoints
 			return null;
 		}
 		
-		/*   TAG 6   */
-		else if (rec[0] == 6) {
+		else if (rec[0] == 6) {																					// R 6
 			System.out.println("PEER: R 6 <--- " + Arrays.toString(rec));
-			if(rec[12] == this.localIDA[0] && rec[13] == this.localIDA[1]) { // im found
+			if(rec[12] == this.idA[0] && rec[13] == this.idA[1]) { // im found
 				return this.getMSG(7, rec);
 			} else {									// carry
 				boolean newMSG = true;
@@ -455,25 +392,25 @@ class P2P implements ActionListener {
 					String node2 = "";
 					String node3 = "";
 					String node4 = "";
-					if (this.peerList[0][0] != 0) {						
-						node1 = "" + (this.peerList[0][0]&0xFF) + "."
-								+ (this.peerList[0][1]&0xFF) + "." + (this.peerList[0][2]&0xFF) + "."
-								+ (this.peerList[0][3]&0xFF);
+					if (this.list[0][0] != 0) {						
+						node1 = "" + (this.list[0][0]&0xFF) + "."
+								+ (this.list[0][1]&0xFF) + "." + (this.list[0][2]&0xFF) + "."
+								+ (this.list[0][3]&0xFF);
 					}
-					if (this.peerList[1][0] != 0) {
-						node2 = "" + (this.peerList[1][0]&0xFF) + "."
-								+ (this.peerList[1][1]&0xFF) + "." + (this.peerList[1][2]&0xFF) + "."
-								+ (this.peerList[1][3]&0xFF);
+					if (this.list[1][0] != 0) {
+						node2 = "" + (this.list[1][0]&0xFF) + "."
+								+ (this.list[1][1]&0xFF) + "." + (this.list[1][2]&0xFF) + "."
+								+ (this.list[1][3]&0xFF);
 					}
-					if (this.peerList[2][0] != 0) {
-						node3 = "" + (this.peerList[2][0]&0xFF) + "."
-								+ (this.peerList[2][1]&0xFF) + "." + (this.peerList[2][2]&0xFF) + "."
-								+ (this.peerList[2][3]&0xFF);
+					if (this.list[2][0] != 0) {
+						node3 = "" + (this.list[2][0]&0xFF) + "."
+								+ (this.list[2][1]&0xFF) + "." + (this.list[2][2]&0xFF) + "."
+								+ (this.list[2][3]&0xFF);
 					}
-					if (this.peerList[3][0] != 0) {
-						node4 = "" + (this.peerList[3][0]&0xFF) + "."
-								+ (this.peerList[3][1]&0xFF) + "." + (this.peerList[3][2]&0xFF) + "."
-								+ (this.peerList[3][3]&0xFF);
+					if (this.list[3][0] != 0) {
+						node4 = "" + (this.list[3][0]&0xFF) + "."
+								+ (this.list[3][1]&0xFF) + "." + (this.list[3][2]&0xFF) + "."
+								+ (this.list[3][3]&0xFF);
 					}
 					this.searches.add(new byte[] {rec[8], rec[9], rec[10], rec[11]});
 					try {
@@ -486,10 +423,8 @@ class P2P implements ActionListener {
 						if (node4.length() > 3)
 							this.sendMSG(node4, port, rec);
 					} catch (UnknownHostException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				} else {
@@ -499,40 +434,46 @@ class P2P implements ActionListener {
 			return null;
 		}
 		
-		/*   TAG 7   */
-		else if (rec[0] == 7) {
+		else if (rec[0] == 7) {																						// R 7
 			System.out.println("PEER: R 7 <--- " + Arrays.toString(rec));
 			// TODO answer search
 			return null;
 		}
 		
-		/*   TAG 8   */
-		else if (rec[0] == 8) {
+		else if (rec[0] == 8) {																						// R 8
 			System.out.println("PEER: R 8 <--- " + Arrays.toString(rec));
 			// TOTO change to string and print
 			return null;
-		} else {
-			System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));
 		}
+		
+		else if (rec[0] == 9) {																						// R 9
+			System.out.println("[DEBUG] R 9");
+		}
+		
+		else if (rec[0] == 10) {																					// R 10
+			System.out.println("[DEBUG] R 10");
+		}
+		
+		System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));									// ERROR
 		return null;
 	}
 	
-	/*
-	 * 		GET MSG
-	 */
+	
+	
+			/*******************/
+			/*   GET MESSAGE   */
+			/*******************/
 	
 	byte[] getMSG(int tag, byte[] rec) {
 		
-		/*   TAG 1   */
-		if (tag == 1) {
+		if (tag == 1) {																								// S 1
 			byte[] msg = {1, 0,
-				this.localIPA[0], this.localIPA[1] , this.localIPA[2], this.localIPA[3],
-				this.localPortA[0], this.localPortA[1]};
+				this.ipA[0], this.ipA[1] , this.ipA[2], this.ipA[3],
+				this.portA[0], this.portA[1]};
 			return msg;
 		}
 		
-		/*   TAG 2   */
-		else if (tag == 2) {
+		else if (tag == 2) {																						// S 2
 			byte[] msg = new byte[36];
 			msg[0] = (byte) 2;
 			msg[1] = (byte) 1;
@@ -542,60 +483,56 @@ class P2P implements ActionListener {
 			msg[3] = newID[1];
 			this.addList(new byte[] {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], newID[0], newID[1], 1});
 			for (int i = 0; i < 8; i++) {
-				msg[i+4] = this.peerList[0][i];
+				msg[i+4] = this.list[0][i];
 			}
 			for (int i = 0; i < 8; i++) {
-				msg[i+12] = this.peerList[1][i];
+				msg[i+12] = this.list[1][i];
 			}
 			for (int i = 0; i < 8; i++) {
-				msg[i+20] = this.peerList[2][i];
+				msg[i+20] = this.list[2][i];
 			}
 			for (int i = 0; i < 8; i++) {
-				msg[i+28] = this.peerList[3][i];
+				msg[i+28] = this.list[3][i];
 			}
 			return msg;
 		}
 		
-		/*   TAG 3   */
-		else if (tag == 3) {
+		else if (tag == 3) {																						// S 3
 			byte[] msg = {3, 1,
-					this.localIPA[0], this.localIPA[1], this.localIPA[2], this.localIPA[3],
-					this.localPortA[0], this.localPortA[1],
-					this.localIDA[0], this.localIDA[1]};
+					this.ipA[0], this.ipA[1], this.ipA[2], this.ipA[3],
+					this.portA[0], this.portA[1],
+					this.idA[0], this.idA[1]};
 			return msg;
 		}
 		
-		/*   TAG 4   */
-		else if (tag == 4) {
+		else if (tag == 4) {																						// S 4
 			byte[] msg = new byte[34];
 			msg[0] = 4;
 			msg[1] = 1;
 			for (int i = 0; i < 8; i++) {
-				msg[i+2] = this.peerList[0][i];
+				msg[i+2] = this.list[0][i];
 			}
 			for (int i = 0; i < 8; i++) {
-				msg[i+10] = this.peerList[1][i];
+				msg[i+10] = this.list[1][i];
 			}
 			for (int i = 0; i < 8; i++) {
-				msg[i+18] = this.peerList[2][i];
+				msg[i+18] = this.list[2][i];
 			}
 			for (int i = 0; i < 8; i++) {
-				msg[i+26] = this.peerList[3][i];
+				msg[i+26] = this.list[3][i];
 			}
 			return msg;
 		}
 		
-		/*   TAG 5   */
-		else if (tag == 5) {
+		else if (tag == 5) {																						// S 5
 			byte[] msg = {5, 1,
-					this.localIPA[0], this.localIPA[1] , this.localIPA[2], this.localIPA[3],
-					this.localPortA[0], this.localPortA[1],
-					this.localIDA[0], this.localIDA[1]};
+					this.ipA[0], this.ipA[1] , this.ipA[2], this.ipA[3],
+					this.portA[0], this.portA[1],
+					this.idA[0], this.idA[1]};
 			return msg;
 		}
 		
-		/*   TAG 6   */
-		else if (tag == 6) {
+		else if (tag == 6) {																						// S 6
 			byte[] sID = twoToByte(searchID);
 			byte[] msg = {6, 1,
 					rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9],
@@ -603,26 +540,24 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		/*   TAG 7   */
-		else if (tag == 7) {
+		else if (tag == 7) {																						// S 7
 			byte[] msg = {7, 1,
-					this.localIPA[0], this.localIPA[1], this.localIPA[2], this.localIPA[3],
-					this.localPortA[0], this.localPortA[1], this.localIDA[0], this.localIDA[1],
+					this.ipA[0], this.ipA[1], this.ipA[2], this.ipA[3],
+					this.portA[0], this.portA[1], this.idA[0], this.idA[1],
 					rec[10], rec[11]};
 			return msg;
 		}
 		
-		/*   TAG 8   */
-		else if (tag == 8) {
+		else if (tag == 8) {																						// S 8
 			byte[] msg = new byte[12+rec.length];
 			msg[0] = 8;
 			msg[1] = 1;
-			for (int i = 0; i < this.localIPA.length; i++)
-				msg[i+1] = this.localIPA[i];
-			msg[6] = this.localPortA[0];
-			msg[7] = this.localPortA[1];
-			msg[8] = this.localIDA[0];
-			msg[9] = this.localIDA[1];
+			for (int i = 0; i < this.ipA.length; i++)
+				msg[i+1] = this.ipA[i];
+			msg[6] = this.portA[0];
+			msg[7] = this.portA[1];
+			msg[8] = this.idA[0];
+			msg[9] = this.idA[1];
 			byte[] lengthA = twoToByte(rec.length);
 			msg[10] = lengthA[0];
 			msg[11] = lengthA[1];
@@ -632,11 +567,27 @@ class P2P implements ActionListener {
 			return msg;
 		}
 		
-		System.out.println("!!!ERROR: getMSG TAG: " + tag);
+		else if (tag == 9) {																						// S 9
+			System.out.println("[DEBUG] G 9");
+		}
+		
+		else if (tag == 10) {																						// S 10
+			System.out.println("[DEBUG] G 10");
+		}
+		
+		System.out.println("!!!!!!!!!!!!!!!!!!!ERROR: getMSG TAG: " + tag);											// ERROR
 		return null;
 	}
-
 	
+	
+	
+	/***********************/
+	/*   LEADER ELECTION   */
+	/***********************/
+	
+	void leaderElection() {
+		
+	}
 	
 			/*****************/
 			/*   PEER LIST   */
@@ -645,17 +596,17 @@ class P2P implements ActionListener {
 	/* SHOW LIST */
 	void showList() {
 		this.listTA.setText("");
-		for (int i = 0; i < this.peerList.length; i++) {
-			if (this.peerList[i][0] != 0) {
-				byte[] tempIdA = {this.peerList[i][6], this.peerList[i][7]};
+		for (int i = 0; i < this.list.length; i++) {
+			if (this.list[i][0] != 0) {
+				byte[] tempIdA = {this.list[i][6], this.list[i][7]};
 				int tempId = twoToInt(tempIdA);
-				byte[] tempPortA = {this.peerList[i][4], this.peerList[i][5]};
+				byte[] tempPortA = {this.list[i][4], this.list[i][5]};
 				int tempPort = twoToInt(tempPortA);
-				this.newLog("list", "" + tempId + " ---> " + (this.peerList[i][0]&0xFF)
-						+ "." + (this.peerList[i][1]&0xFF) + "." + (this.peerList[i][2]&0xFF) + "." + (this.peerList[i][3]&0xFF)
-								+ " : " + tempPort + "   #" + (this.peerList[i][8]&0xFF) + "\n");
+				this.listTA.append("" + tempId + " ---> " + (this.list[i][0]&0xFF)
+						+ "." + (this.list[i][1]&0xFF) + "." + (this.list[i][2]&0xFF) + "." + (this.list[i][3]&0xFF)
+								+ " : " + tempPort + "   #" + (this.list[i][8]&0xFF) + "\n");
 			} else {
-				this.newLog("list", "empty slot\n");
+				this.listTA.append("empty slot\n");
 			}
 		}
 	}
@@ -663,23 +614,23 @@ class P2P implements ActionListener {
 	/* ADD PEER TO LIST */
 	void addList(byte[] newPeer) {
 		if (newPeer[0] != 0) {
-			for (int i = 0; i < this.peerList.length; i++) {
-				if (this.peerList[i][0] == newPeer[0] && this.peerList[i][1] == newPeer[1] &&
-						this.peerList[i][2] == newPeer[2] && this.peerList[i][3] == newPeer[3] &&
-						this.peerList[i][4] == newPeer[4] && this.peerList[i][5] == newPeer[5] &&
-						this.peerList[i][6] == newPeer[6] && this.peerList[i][7] == newPeer[7]) {
+			for (int i = 0; i < this.list.length; i++) {
+				if (this.list[i][0] == newPeer[0] && this.list[i][1] == newPeer[1] &&
+						this.list[i][2] == newPeer[2] && this.list[i][3] == newPeer[3] &&
+						this.list[i][4] == newPeer[4] && this.list[i][5] == newPeer[5] &&
+						this.list[i][6] == newPeer[6] && this.list[i][7] == newPeer[7]) {
 					System.out.println("LIST: ALREADY KNOW " + Arrays.toString(newPeer));
 					return;
 				}
-				if (this.peerList[i][0] == 0) {
-					for (int j = 0; j < this.peerList[i].length; j++) {
-						this.peerList[i][j] = newPeer[j];
+				if (this.list[i][0] == 0) {
+					for (int j = 0; j < this.list[i].length; j++) {
+						this.list[i][j] = newPeer[j];
 					}
 					System.out.println("LIST: ADDED " + Arrays.toString(newPeer));
 					this.showList();
 					return;
 				} else {
-					if (!(i < this.peerList.length)) {
+					if (!(i < this.list.length)) {
 					System.out.println("LIST : NO EMPTY slot for " + Arrays.toString(newPeer));
 					}
 				}
@@ -687,57 +638,29 @@ class P2P implements ActionListener {
 		} else {
 			System.out.println("LIST: NOT ADDED " + Arrays.toString(newPeer));
 		}
+		this.showList();
 	}
 	
-
 	
 	
+	/***************/
+	/*   HELPERS   */
+	/***************/
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	String getLocalIPS() {
-		
+	String getLocalIP() {
 		String lIP = "";
 		
-		/* Version 1
-		InetAddress ip = InetAddress.getLocalHost();
-		String lIP = ip.getHostAddress();
-		*/
+		//InetAddress ip = InetAddress.getLocalHost();					// Version 1 works with OpenSuse
+		//String lIP = ip.getHostAddress();
 		
-		// Version 2
-		try {
+		try {															// Version 2 works with Win10, Linux Mint
 			Socket s = new Socket("www.google.de", 80);
 			lIP = s.getLocalAddress().getHostAddress();
 			s.close();
 		} catch (IOException e) {
-			this.newLog("sys", "init local address failed");
 			e.printStackTrace();
 		}
-		
 		return lIP;
-	}
-	
-	void setLocalIPA() {
-		
-		String[] stringArr = this.localIPS.split("\\.");
-		
-		
-		for (int i = 0; i < 4; i++) {
-			this.localIPA[i] = (byte) Integer.parseInt(stringArr[i]);
-		}
-		
-	}
-	
-	void setLocalPortA() {
-		byte[] res = {(byte)(port >>> 8), (byte)(port)};
-		this.localPortA[0] = res[0];
-		this.localPortA[1] = res[1];
 	}
 	
 	static int twoToInt(byte[] i) {
@@ -749,6 +672,4 @@ class P2P implements ActionListener {
 		byte[] res = {(byte)(value >>> 8), (byte)(value)};
 		return res;
 	}
-	
-	
 }

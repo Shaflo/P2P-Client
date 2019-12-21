@@ -9,53 +9,54 @@ class PeerThread implements Runnable {
 	public void run() {
 			
 		int timeA = 0;
-		int sendA = 40;			// sending alive all 40sec
-		int timer = 0;
+		int sendA = 40;			// sending alive all 30 sec
 		
-		
-		
-			while (true) {
+		while (true) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ie) {
+				ie.printStackTrace();
+			}
 			
-				/* WAITING */
+			/******************************/
+			/*   CONNECTING WITH LEADER   */
+			/******************************/
+			
+			while (!this.peer.connected) {
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(2000);
 				} catch (InterruptedException ie) {
-					System.out.println("!P2PClient1 InterruptedException!");
 					ie.printStackTrace();
 				}
-				
-				//this.obj.newLog("sys", "spam!!!\n");
-				
-				/*********************/
-				/*   SENDING ALIVE   */
-				/*********************/
-			
-				if (timeA >= sendA) {									// sending alive
-					timeA = 0;
-					try {
-						this.peer.sendMSG(this.peer.leader, this.peer.port, this.peer.getMSG(5, null));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				} else {
-					timeA++;
+				System.out.println("try to connect to leader");
+				try {
+					this.peer.sendMSG(this.peer.leader, 3333, this.peer.getMSG(1, null));
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				
-				/********************/
-				/*   PEER MESSAGE   */
-				/********************/
-				
-				if (timer > 20) {
-					timer = 0;
-					// TODO sending tag6
-				} else {
-					timer++;
-				}
-				
-				/******************/
-				/*   CHECK LIST   */
-				/******************/
+			}
 			
+			
+			
+			/*********************/
+			/*   SENDING ALIVE   */
+			/*********************/
+		
+			if (timeA >= sendA) {
+				timeA = 0;
+				try {
+					this.peer.sendMSG(this.peer.leader, this.peer.port, this.peer.getMSG(5, null));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				timeA++;
+			}
+			
+			/******************/
+			/*   CHECK LIST   */
+			/******************/
+		
 			/*if (timer > 33) {
 				P2P.checkTimestamp();
 				timer = 0;
