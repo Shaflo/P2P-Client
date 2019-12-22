@@ -30,7 +30,7 @@ class PeerThread implements Runnable {
 				}
 				System.out.println("try to connect to leader");
 				try {
-					this.peer.sendMSG(this.peer.leader, 3333, this.peer.getMSG(1, null));
+					this.peer.sendMSG(this.peer.leader, P2P.defaultPort, this.peer.getMSG(1, null));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -45,13 +45,15 @@ class PeerThread implements Runnable {
 			if (timeA >= sendA) {
 				timeA = 0;
 				try {
-					this.peer.sendMSG(this.peer.leader, this.peer.port, this.peer.getMSG(5, null));
+					this.peer.sendMSG(this.peer.leader, P2P.defaultPort, this.peer.getMSG(5, null));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			} else {
 				timeA++;
 			}
+			
+			
 			
 			/******************/
 			/*   CHECK LIST   */
