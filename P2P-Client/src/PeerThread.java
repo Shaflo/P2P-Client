@@ -24,7 +24,7 @@ class PeerThread implements Runnable {
 			
 			while (!this.peer.connected) {
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(1000);
 				} catch (InterruptedException ie) {
 					ie.printStackTrace();
 				}
