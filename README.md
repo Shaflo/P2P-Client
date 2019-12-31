@@ -7,7 +7,7 @@
 - Peer list with max 4 Peers
 - sending Messages in Byte Array
 - Heartbeat (min. 1 per minute to leader)
-- unique IDs for every Peer
+- unique IDs for every Peer (1-25)
 
 ## Messages
 
@@ -84,6 +84,7 @@ Tag: 10 (1 byte)
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
 ```
+
 ## Search Algorithm 
 
 - Peer fragt die Nachbarn  
@@ -94,22 +95,17 @@ IPv4+Port+ID (8 byte)
 2.2 Bin ich nicht der Knoten  
 → Nachricht an alle meine Nachbarn, außer SuchendenListe  
 
-IDs:- von 1 – 25  
-
 ## Leader Election (Bully Algorithm)
 
-1. Unser Peer fragt nacheinander alle höheren IDs mit Tag 9 an.  
-2. Sobald ein Peer mit Tag 5 antwortet, ist die Suche beendet (unser Peer wird kein Leader).  
-3. Sobald ein Peer keine Antwort von höheren IDs bekommt wird er der Leader und muss alle Peers informieren. Dazu Peer IDs 1-25 IP+Port suchen und Tag 10 senden.  
+2 ways of starting leader election:  
+- we want (manually)  
+- we get Tag 9 message and answer with Tag 5  
 
-Ablauf Leader Election:  
-- Peer fragt nacheinander alle Peers an, die eine höhere ID haben, bis einer antwortet* schickt Tag 9 und lässt die Verbindung offen  
-- angefragter Peer antwortet an Peer mit Tag 5 und sendet Anfrage an alle Peers mit höherer ID, bei Antwort durch Peer mit höherer ID → fragender Peer wird nicht Leader
-- wenn keine Antwort von höherer ID oder höhere existiert nicht, Nachricht “I am leader”an alle
+1. The Peer asks all higher IDs with Tag 9  
+2. If a higher ID answer with Tag 5, this peer will take the leader election. we are finish  
+3. We are leader, when we cannot find a peer with higher ID. We send Tag10 (IAmLeaderMessage) to all Peers  
 
-
-## Other  
+## Dictionary
 SourceID: ID des suchenden Knoten  
 DestinationID: ID des zu suchenden Knoten  
-SearchID: eindeutige ID der jeweiligen Suche  
-
+SearchID: eindeutige ID der jeweiligen Suche
