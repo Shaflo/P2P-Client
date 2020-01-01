@@ -75,7 +75,7 @@ public class SearchThread implements Runnable {
 		
 		int timer = 0;
 		// wait for answer
-		while (timer < 8) {
+		while (timer < 5) {
 			timer++;
 			byte[] helper = new byte[6];
 			
@@ -84,7 +84,7 @@ public class SearchThread implements Runnable {
 			if (helper[0] != (byte) 0) {
 				
 				System.out.println("ID gefunden: " + P2P.twoToInt(new byte[] {rec[12], rec[13]}));
-				break;
+				return;
 				
 			} else {
 				

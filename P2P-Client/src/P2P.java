@@ -135,9 +135,11 @@ class P2P implements ActionListener {
 		this.leader = _leader;										// Leader
 		if (this.leader.equals("localhost")) {						// Leader Status
 			this.isLeader = true;
+			this.leaderStatus.setText("          leader");
 			this.leaderStatus.setBackground(Color.GREEN);
 		} else {
 			this.isLeader = false;
+			this.leaderStatus.setText("          leader:" + this.leader + ":" + defaultPort);
 			this.leaderStatus.setBackground(Color.RED);
 		}
 		this.doLeaderElection = false;								// Leader Election Status
@@ -202,6 +204,9 @@ class P2P implements ActionListener {
 
 		P2P peer = new P2P(3333, "localhost");
 		peer.startPeer();
+		
+		P2P peer2 = new P2P(3334, "10.10.10.1");
+		peer2.startPeer();
 	}
 
 
@@ -259,7 +264,7 @@ class P2P implements ActionListener {
 		sock.close();
 	}
 
-	void send(int _id, byte[] msg) throws UnknownHostException, IOException {								// new just need id
+	boolean send(int _id, byte[] msg) throws UnknownHostException, IOException {								// new just need id
 		Socket sock;
 		OutputStream out;
 		InputStream in;
@@ -267,10 +272,8 @@ class P2P implements ActionListener {
 		int tries = 0;
 		while (tries < 3) {
 			for (int i = 0; i < this.list.length; i++) {
-				if (this.list[i][7] == IDhelper[0] && this.list[i][8] == IDhelper[1]) {
-					
+				if (this.list[i][6] == IDhelper[0] && this.list[i][7] == IDhelper[1]) {
 					// gefunden (senden)
-					
 					String hostname = "" + (this.list[i][0]&0xFF) + "."
 							+ (this.list[i][1]&0xFF) + "." + (this.list[i][2]&0xFF) + "."
 							+ (this.list[i][3]&0xFF);
@@ -300,19 +303,20 @@ class P2P implements ActionListener {
 					out.close();
 					sock.close();
 					System.out.println("Nachricht gesendet an " + _id);
+					return true;
 				}
 
 			}
 			this.search(_id);
 			try {
-				Thread.sleep(4000);
+				Thread.sleep(3000);
 			} catch (InterruptedException ie) {
 				ie.printStackTrace();
 			}
 			tries++;
 		}
 		System.out.println("Nachricht konnte nicht gesendet werden (ID not found)" + _id);
-		return;
+		return false;
 	}
 
 
@@ -375,8 +379,9 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 5) {																				// R 5
 			System.out.println("SERVER: R 5 <--- " + Arrays.toString(rec));
-			if (this.doLeaderElection && (twoToInt(new byte[] {rec[8], rec[9]})) > (twoToInt(new byte[] {this.idA[0], this.idA[1]}))) {
+			if (this.doLeaderElection && twoToInt(new byte[] {rec[8], rec[9]}) > twoToInt(new byte[] {this.idA[0], this.idA[1]})) {
 				this.doLeaderElection = false;
+				this.leaderStatus.setBackground(Color.GRAY);
 			}
 			return null;
 		}
@@ -462,9 +467,11 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 10) {																			// R 10
 			System.out.println("[HANDLE] R 10");
-			this.connected = false;
+			//this.connected = false;
 			this.leader = "" + (rec[2]&0xFF) + "." + (rec[3]&0xFF) + "." + (rec[4]&0xFF) + "." + (rec[5]&0xFF);
-			System.out.println("NEW LEADER: " + this.leader);
+			this.leaderStatus.setBackground(Color.RED);
+			defaultPort = twoToInt(new byte[] {rec[6], rec[7]});
+			this.leaderStatus.setText("          leader:" + this.leader + ":" + defaultPort);
 		}
 
 		System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));							// ERROR
@@ -683,8 +690,9 @@ class P2P implements ActionListener {
 				} else {
 					if (!(i < this.list.length)) {
 						System.out.println("LIST : NO EMPTY slot for (overwrite slot 3)" + Arrays.toString(newPeer));
+						int rand = (int) (Math.random() * this.list.length);
 						for (int k = 0; k < this.list[i].length; k++) {
-							this.list[i][k] = newPeer[k];
+							this.list[rand][k] = newPeer[k];
 						}
 					}
 				}

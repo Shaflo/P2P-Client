@@ -17,7 +17,7 @@ class PeerThread implements Runnable {
 			} catch (InterruptedException ie) {
 				ie.printStackTrace();
 			}
-			
+
 			/******************************/
 			/*   CONNECTING WITH LEADER   */
 			/******************************/
