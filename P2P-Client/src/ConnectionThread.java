@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
+import java.util.Iterator;
 
 class ConnectionThread implements Runnable {
 	
@@ -25,8 +26,31 @@ class ConnectionThread implements Runnable {
 			if (result.length > 3) {
 				byte[] ans = this.peer.handleMSG(result);
 				if (ans != null) {
-					out.write(ans);
-					System.out.println("SERVER: S " + ans[0] + " ---> " + Arrays.toString(ans));
+					if (ans[0] == (byte) 7) {
+						System.out.println("yeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+						
+						boolean newMSG = true;
+						Iterator<byte[]> itr = this.peer.searches.iterator();
+						while (itr.hasNext()) {
+							byte[] x = itr.next();
+							if (result[8] == x[0] && result[9] == x[1] && result[10] == x[2] && result[11] == x[3]) {
+								newMSG = false;
+							}
+						}
+						if (newMSG) {
+						String hostn = "" + (result[2]&0xFF) + "."
+								+ (result[3]&0xFF) + "." + (result[4]&0xFF) + "."
+								+ (result[5]&0xFF);
+						this.peer.searches.add(new byte[] {result[8], result[9], result[10], result[11]});
+						this.peer.sendMSG(hostn, P2P.twoToInt(new byte[] {result[6], result[7]}), ans);
+						
+						} else {
+							System.out.println("PEER" + this.peer.id + ": R 6 bereits mit 7 geantwortet!");
+						}
+					} else {
+						out.write(ans);
+						System.out.println("PEER" + this.peer.id + ": S " + ans[0] + " ---> " + Arrays.toString(ans));
+					}
 				}
 			}
 			connectionSocket.close();

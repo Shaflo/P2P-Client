@@ -18,12 +18,15 @@ class P2P implements ActionListener {
 
 	/* Settings */
 	static int defaultPort = 3333;
+	static String defaultLeader = "10.10.10.1";
+	static boolean startAsLeader = true;
+	static int peerAnz = 5;
 	static int maxKnownPeers = 4;
-	static int peerIDs = 1000;			// delete
-	static int firstIndexID = 1000;
-	static int lastIndexID = 1004;
-
+	static int firstIndexID = 1;
+	static int lastIndexID = 7;
+	
 	/* Peer */
+	static int idCounter = firstIndexID;
 	boolean connected;
 	String leader;
 	boolean isLeader;
@@ -163,12 +166,12 @@ class P2P implements ActionListener {
 			}
 		}
 		this.doSearch = false;										// Search Status
-		this.searchID = firstIndexID;								// searchIDs
+		this.searchID = 1000;										// searchIDs
 		this.searches = new LinkedList<byte[]>();					// search List
 
 		/*   Update Dashboard   */
 		this.infoIP.setText("   IP: " + this.ip);
-		this.infoPort.setText("   Port: " + Integer.toString(port));
+		this.infoPort.setText("   Port: " + Integer.toString(this.port));
 	}
 
 
@@ -201,12 +204,32 @@ class P2P implements ActionListener {
 			/************/
 
 	public static void main(String[] args) throws Exception {
-
-		P2P peer = new P2P(3333, "localhost");
-		peer.startPeer();
 		
-		P2P peer2 = new P2P(3334, "10.10.10.1");
-		peer2.startPeer();
+		// starting leader peer
+		if (startAsLeader) {
+			P2P peerLeader = new P2P(3333, "localhost");
+			peerLeader.startPeer();
+		}
+		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException ie) {
+			ie.printStackTrace();
+		}
+		
+		// starting normal peers
+		if (peerAnz > 1) {
+			P2P[] peer = new P2P[peerAnz-1];
+			for (int i = 0; i < peerAnz-1; i++) {
+				peer[i] = new P2P((defaultPort+1+i), defaultLeader);
+				peer[i].startPeer();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ie) {
+					ie.printStackTrace();
+				}
+			}
+		}
 	}
 
 
@@ -244,7 +267,7 @@ class P2P implements ActionListener {
 		in = new DataInputStream(sock.getInputStream());
 		// senden
 		out.write(msg);
-		System.out.println("PEER: ---> " + Arrays.toString(msg));
+		System.out.println("PEER"+ this.id + ": ---> " + Arrays.toString(msg) + " TO -> " + hostname + ":" + port);
 		// empfangen
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte[] buffer = new byte[1024];
@@ -330,9 +353,13 @@ class P2P implements ActionListener {
 		if (rec[0] == 1 && this.isLeader) {																	// R 1
 			if (this.isLeader) {
 				System.out.println("SERVER: R 1 <--- " + Arrays.toString(rec));
-				return this.getMSG(2, rec); // getMSG 2 added in list
+				byte[] newId = twoToByte(idCounter);
+				this.addList(new byte[] {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], newId[0], newId[1], 1});
+				byte[] newM = this.getMSG(2, rec);
+				idCounter++;
+				return newM;
 			} else {
-				System.out.println("<--- R 1 BUT IM NOT LEADER!!!!!!!!!!!!!!");
+				System.out.println("<--- R 1 BUT IM NOT LEADER!!!!!!!!!!!!!!--------------------------------------------------------------------!!!!!!!");
 			}
 		}
 
@@ -340,7 +367,8 @@ class P2P implements ActionListener {
 			System.out.println("CLIENT: R 2 <--- " + Arrays.toString(rec));
 
 			byte[] bla = {rec[2], rec[3]};
-			this.infoID.setText("   ID: " + Integer.toString(twoToInt(bla)));
+			this.id = twoToInt(bla);
+			this.infoID.setText("   ID: " + this.id);
 
 			this.connected = true;
 			this.connectStatus.setBackground(Color.green);
@@ -350,10 +378,14 @@ class P2P implements ActionListener {
 			byte[] newP2 = {rec[12], rec[13], rec[14], rec[15], rec[16], rec[17], rec[18], rec[19], 1};
 			byte[] newP3 = {rec[20], rec[21], rec[22], rec[23], rec[24], rec[25], rec[26], rec[27], 1};
 			byte[] newP4 = {rec[28], rec[29], rec[30], rec[31], rec[32], rec[33], rec[34], rec[35], 1};
-			this.addList(newP1);
-			this.addList(newP2);
-			this.addList(newP3);
-			this.addList(newP4);
+			if (rec[4] != 0)
+				this.addList(newP1);
+			if (rec[12] != 0)
+				this.addList(newP2);
+			if (rec[20] != 0)
+				this.addList(newP3);
+			if (rec[28] != 0)
+				this.addList(newP4);
 			return null;
 		}
 
@@ -382,15 +414,21 @@ class P2P implements ActionListener {
 			if (this.doLeaderElection && twoToInt(new byte[] {rec[8], rec[9]}) > twoToInt(new byte[] {this.idA[0], this.idA[1]})) {
 				this.doLeaderElection = false;
 				this.leaderStatus.setBackground(Color.GRAY);
+			} else if (!this.isLeader) {
+				System.out.println("------------------------------------------------------------------------------------------------------------------------!!!!!!!!!!!!!!");
 			}
 			return null;
 		}
 
 		else if (rec[0] == 6) {																				// R 6
-			System.out.println("PEER: R 6 <--- " + Arrays.toString(rec));
-			if(rec[12] == this.idA[0] && rec[13] == this.idA[1]) { // im found
-				return this.getMSG(7, rec);
+			System.out.println("PEER" + this.id + ": R 6 <--- " + Arrays.toString(rec));
+			
+			if(rec[12] == this.idA[0] && rec[13] == this.idA[1]) { 
+				
+				return this.getMSG(7, rec);				// im found
+			
 			} else {									// carry
+				
 				boolean newMSG = true;
 				Iterator<byte[]> itr = this.searches.iterator();
 				while (itr.hasNext()) {
@@ -427,29 +465,30 @@ class P2P implements ActionListener {
 					this.searches.add(new byte[] {rec[8], rec[9], rec[10], rec[11]});
 					try {
 						if (node1.length() > 3)
-							this.sendMSG(node1, port, rec);
+							this.sendMSG(node1, twoToInt(new byte[] {this.list[0][4], this.list[0][5]}), rec);
 						if (node2.length() > 3)
-							this.sendMSG(node2, port, rec);
+							this.sendMSG(node2, twoToInt(new byte[] {this.list[1][4], this.list[1][5]}), rec);
 						if (node3.length() > 3)
-							this.sendMSG(node3, port, rec);
+							this.sendMSG(node3, twoToInt(new byte[] {this.list[2][4], this.list[2][5]}), rec);
 						if (node4.length() > 3)
-							this.sendMSG(node4, port, rec);
+							this.sendMSG(node4, twoToInt(new byte[] {this.list[3][4], this.list[3][5]}), rec);
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					
 				} else {
-					System.out.println("PEER: MSG bereits gecarried " + Arrays.toString(rec));
+					
+					System.out.println("PEER " + this.id + ": MSG bereits gecarried " + Arrays.toString(rec));
 				}
 			}
 			return null;
 		}
 
 		else if (rec[0] == 7) {																				// R 7
-			System.out.println("PEER: R 7 <--- " + Arrays.toString(rec));
-			this.addList(new byte[] {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9]});
-			this.searchStat.setBackground(Color.GREEN);
+			System.out.println("PEER" + this.id + ": R 7 <--- " + Arrays.toString(rec));
+			this.addList(new byte[] {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], 1});
 			return null;
 		}
 
@@ -497,11 +536,9 @@ class P2P implements ActionListener {
 			byte[] msg = new byte[36];
 			msg[0] = (byte) 2;
 			msg[1] = (byte) 1;
-			byte[] newID = twoToByte(peerIDs);
-			peerIDs++;
+			byte[] newID = twoToByte(idCounter);
 			msg[2] = newID[0];
 			msg[3] = newID[1];
-			this.addList(new byte[] {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], newID[0], newID[1], 1});
 			for (int i = 0; i < 8; i++) {
 				msg[i+4] = this.list[0][i];
 			}
@@ -673,33 +710,34 @@ class P2P implements ActionListener {
 	void addList(byte[] newPeer) {
 		if (newPeer[0] != 0) {
 			for (int i = 0; i < this.list.length; i++) {
+				
 				if (this.list[i][0] == newPeer[0] && this.list[i][1] == newPeer[1] &&
 						this.list[i][2] == newPeer[2] && this.list[i][3] == newPeer[3] &&
 						this.list[i][4] == newPeer[4] && this.list[i][5] == newPeer[5] &&
-						this.list[i][6] == newPeer[6] && this.list[i][7] == newPeer[7]) {
+						this.list[i][6] == newPeer[6] && this.list[i][7] == newPeer[7]) {						// schon in Liste vorhanden
 					System.out.println("LIST: ALREADY KNOW " + Arrays.toString(newPeer));
+					this.showList();
 					return;
-				}
-				if (this.list[i][0] == 0) {
+					
+				} else if (this.list[i][0] == 0) {																// freier slot gefunden und hinzufügen
+					
 					for (int j = 0; j < this.list[i].length; j++) {
 						this.list[i][j] = newPeer[j];
 					}
-					System.out.println("LIST: ADDED " + Arrays.toString(newPeer));
 					this.showList();
 					return;
-				} else {
-					if (!(i < this.list.length)) {
-						System.out.println("LIST : NO EMPTY slot for (overwrite slot 3)" + Arrays.toString(newPeer));
-						int rand = (int) (Math.random() * this.list.length);
-						for (int k = 0; k < this.list[i].length; k++) {
-							this.list[rand][k] = newPeer[k];
-						}
-					}
+					
 				}
 			}
+			
+			int rand = (int) (Math.random() * this.list.length);												// ersetzt einen random Plantz in der Liste
+			for (int k = 0; k < this.list[0].length; k++) {
+				this.list[rand][k] = newPeer[k];
+			}
 		} else {
-			System.out.println("LIST: NOT ADDED " + Arrays.toString(newPeer));
+			System.out.println("LIST: NOT ADDED (wrong syntax)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + Arrays.toString(newPeer));
 		}
+		
 		this.showList();
 	}
 	

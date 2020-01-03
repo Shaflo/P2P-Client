@@ -15,7 +15,7 @@ class ServerThread implements Runnable {
 			ServerSocket welcomeSocket = new ServerSocket(this.peer.port);
 			while (true) {
 				Socket connectionSocket = welcomeSocket.accept();
-				System.out.println("SERVER: " + connectionSocket.getInetAddress() + ":" + connectionSocket.getPort() + " connected!");
+				System.out.println("SERVER" + this.peer.id + ": " + connectionSocket.getInetAddress() + ":" + connectionSocket.getPort() + " connected!");
 				new Thread(new ConnectionThread(connectionSocket, this.peer)).start();
 			}
 		} catch (IOException ioe) {

@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
@@ -13,7 +14,8 @@ public class SearchThread implements Runnable {
 	
 	
 	public void run() {
-		
+		this.peer.searchStat.setBackground(Color.GRAY);
+		this.peer.searchTF.setText("" + this.whois);
 		// create message
 		byte[] rec = new byte[14];
 		byte[] help = P2P.twoToByte(this.whois);
@@ -60,13 +62,13 @@ public class SearchThread implements Runnable {
 		// sending to nodes
 		try {
 			if (node1.length() > 3)
-				this.peer.sendMSG(node1, this.peer.port, rec);
+				this.peer.sendMSG(node1, P2P.twoToInt(new byte[] {this.peer.list[0][4], this.peer.list[0][5]}), rec);
 			if (node2.length() > 3)
-				this.peer.sendMSG(node2, this.peer.port, rec);
+				this.peer.sendMSG(node2, P2P.twoToInt(new byte[] {this.peer.list[1][4], this.peer.list[1][5]}), rec);
 			if (node3.length() > 3)
-				this.peer.sendMSG(node3, this.peer.port, rec);
+				this.peer.sendMSG(node3, P2P.twoToInt(new byte[] {this.peer.list[2][4], this.peer.list[2][5]}), rec);
 			if (node4.length() > 3)
-				this.peer.sendMSG(node4, this.peer.port, rec);
+				this.peer.sendMSG(node4, P2P.twoToInt(new byte[] {this.peer.list[3][4], this.peer.list[3][5]}), rec);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -75,7 +77,7 @@ public class SearchThread implements Runnable {
 		
 		int timer = 0;
 		// wait for answer
-		while (timer < 5) {
+		while (timer < 3) {
 			timer++;
 			byte[] helper = new byte[6];
 			
@@ -84,11 +86,12 @@ public class SearchThread implements Runnable {
 			if (helper[0] != (byte) 0) {
 				
 				System.out.println("ID gefunden: " + P2P.twoToInt(new byte[] {rec[12], rec[13]}));
+				this.peer.searchStat.setBackground(Color.GREEN);
 				return;
 				
 			} else {
 				
-				System.out.println("not found... wait 1 sec");
+				System.out.println("Peer " + this.peer.id + ": search...");
 				
 				try {
 					Thread.sleep(1000);
@@ -97,5 +100,7 @@ public class SearchThread implements Runnable {
 				}
 			}
 		}
+		System.out.println("Peer " + this.peer.id + ": ID " + this.whois + " nicht gefunden!");
+		this.peer.searchStat.setBackground(Color.RED);
 	}
 }

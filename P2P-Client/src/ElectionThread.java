@@ -38,6 +38,7 @@ public class ElectionThread implements Runnable {
 			this.peer.leaderStatus.setText("          leader");
 			
 			int sendToID = P2P.firstIndexID;
+			this.peer.electStat.setText("broadcast");
 			while (sendToID <= P2P.lastIndexID) {
 				if (sendToID == P2P.twoToInt(this.peer.idA)) {
 					sendToID++;
