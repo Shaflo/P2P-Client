@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -20,7 +21,7 @@ class P2P implements ActionListener {
 	static int defaultPort = 3333;
 	static String defaultLeader = "10.10.10.1";
 	static boolean startAsLeader = true;
-	static int peerAnz = 5;
+	static int peerAnz = 1;
 	static int maxKnownPeers = 4;
 	static int firstIndexID = 1;
 	static int lastIndexID = 7;
@@ -65,12 +66,22 @@ class P2P implements ActionListener {
 	JLabel electLabel;
 	JTextField electStat;
 	JButton electButton;
+	JPanel chatP;					// Chat Panel
+	JPanel chatInP;
+	JTextArea chatInTA;
+	JPanel chatOut;
+	JButton chatInClear;
+	JLabel chatIdL;
+	JTextField chatID;
+	JLabel chatMsgL;
+	JTextField chatMSG;
+	JButton chatSend;
 
 	private P2P(int _port, String _leader) {
 
 		/* GUI */
 		this.frame = new JFrame("P2P-Client");
-		this.frame.setSize(500, 300);
+		this.frame.setSize(500, 400);
 		this.contentPane = new JPanel();
 		this.contentPane.setLayout(new BoxLayout(this.contentPane, BoxLayout.Y_AXIS));
 		this.connectStatus = new JTextField("         connected");													// Status Panel
@@ -130,6 +141,40 @@ class P2P implements ActionListener {
 		this.electButton.addActionListener(this);
 		this.electPanel.add(this.electButton);
 		this.contentPane.add(this.electPanel);
+		this.chatP = new JPanel();																					// Chat Panel
+		this.chatP.setLayout(new BoxLayout(this.chatP, BoxLayout.Y_AXIS));
+		//this.chatP.setBackground(Color.BLUE);
+		this.chatInP = new JPanel();
+		this.chatInP.setLayout(new BoxLayout(this.chatInP, BoxLayout.X_AXIS));
+		//this.chatInP.setBackground(Color.BLUE);
+		this.chatInTA = new JTextArea();
+		//this.chatInTA.setSize(this.frame.getWidth(), 8);
+		//this.chatInTA.setMaximumSize(this.chatInTA.getPreferredSize());
+		this.chatInP.add(this.chatInTA);
+		this.chatOut = new JPanel();
+		this.chatOut.setLayout(new BoxLayout(this.chatOut, BoxLayout.X_AXIS));
+		//this.chatOut.setBackground(Color.BLUE);
+		this.chatInClear = new JButton("clear InBox");
+		this.chatInClear.addActionListener(this);
+		this.chatOut.add(this.chatInClear);
+		this.chatIdL = new JLabel("ID:");
+		this.chatOut.add(this.chatIdL);
+		this.chatID = new JTextField();
+		this.chatID.setColumns(5);
+		this.chatID.setMaximumSize(this.chatID.getPreferredSize());
+		this.chatOut.add(this.chatID);
+		this.chatMsgL = new JLabel("MSG:");
+		this.chatOut.add(this.chatMsgL);
+		this.chatMSG = new JTextField();
+		this.chatMSG.setColumns(20);
+		this.chatMSG.setMaximumSize(this.chatMSG.getPreferredSize());
+		this.chatOut.add(this.chatMSG);
+		this.chatSend = new JButton("send");
+		this.chatSend.addActionListener(this);
+		this.chatOut.add(this.chatSend);
+		this.chatP.add(this.chatInP);
+		this.chatP.add(this.chatOut);
+		this.contentPane.add(this.chatP);
 		this.frame.setContentPane(this.contentPane);
 		this.frame.setVisible(true);
 
@@ -190,10 +235,16 @@ class P2P implements ActionListener {
 			} else {
 				System.out.println("!!!ERROR: keine geultige ID eingetragen!");
 			}
-		}
-
-		if (ae.getSource() == this.electButton) {									// START LEADER ELECTION
+		} else if (ae.getSource() == this.electButton) {							// START LEADER ELECTION
 			this.startLeaderElection();
+		} else if (ae.getSource() == this.chatInClear) {							// Clear InBox Chat
+			this.chatInTA.setText("");
+		} else if (ae.getSource() == this.chatSend) {								// SEND MSG
+			try {
+				this.send(Integer.parseInt(this.chatID.getText()), this.getMSG(8, new byte[] {}));
+			} catch (NumberFormatException | IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -494,7 +545,11 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 8) {																				// R 8
 			System.out.println("PEER: R 8 <--- " + Arrays.toString(rec));
-			// TOTO change to string and print
+			byte[] txt = new byte[twoToInt(new byte[] {rec[10], rec[11]})];
+			for (int i = 0; i < txt.length; i++) {
+				txt[i] = rec[i+12];
+			}
+			this.chatInTA.append(twoToInt(new byte[] {rec[8], rec[9]}) + ": " + byteToString(txt) + "\n");
 			return null;
 		}
 
@@ -605,20 +660,22 @@ class P2P implements ActionListener {
 		}
 
 		else if (tag == 8) {																				// S 8
-			byte[] msg = new byte[12+rec.length];
+			String txt = this.chatMSG.getText();
+			byte[] msgcache = stringToByte(txt);
+			byte[] msg = new byte[12+msgcache.length];
 			msg[0] = 8;
 			msg[1] = 1;
 			for (int i = 0; i < this.ipA.length; i++)
-				msg[i+1] = this.ipA[i];
+				msg[i+2] = this.ipA[i];
 			msg[6] = this.portA[0];
 			msg[7] = this.portA[1];
 			msg[8] = this.idA[0];
 			msg[9] = this.idA[1];
-			byte[] lengthA = twoToByte(rec.length);
+			byte[] lengthA = twoToByte(msgcache.length);
 			msg[10] = lengthA[0];
 			msg[11] = lengthA[1];
-			for (int i = 0; i < rec.length; i++) {
-				msg[i+11] = rec[i];
+			for (int i = 0; i < msgcache.length; i++) {
+				msg[i+12] = msgcache[i];
 			}
 			return msg;
 		}
@@ -708,6 +765,13 @@ class P2P implements ActionListener {
 
 	/* ADD PEER TO LIST */
 	void addList(byte[] newPeer) {
+		if (newPeer[0] == this.ipA[0] && newPeer[1] == this.ipA[1] && newPeer[2] == this.ipA[2] &&
+				newPeer[3] == this.ipA[3] && newPeer[4] == this.portA[0] &&
+				newPeer[5] == this.portA[1] && newPeer[6] == this.idA[0] &&
+				newPeer[7] == this.idA[1]) {																	// mich selbst nicht adden
+			System.out.println("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII bin selbst schon drin");
+			return;
+		}
 		if (newPeer[0] != 0) {
 			for (int i = 0; i < this.list.length; i++) {
 				
@@ -778,7 +842,17 @@ class P2P implements ActionListener {
 		}
 		return lIP;
 	}
-
+	
+	static String byteToString(byte[] arr) {
+		String res = new String(arr);
+		return res;
+	}
+	
+	static byte[] stringToByte(String str) {
+		byte[] res = str.getBytes(StandardCharsets.UTF_8);
+		return res;
+	}
+	
 	static int twoToInt(byte[] i) {
 		int res = ((i[0]&0xFF) << 8) | (i[1]&0xFF);
 		return res;
