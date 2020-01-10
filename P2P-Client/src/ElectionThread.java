@@ -15,7 +15,7 @@ public class ElectionThread implements Runnable {
 		
 		int askID = P2P.twoToInt(this.peer.idA);
 		
-		while (this.peer.doLeaderElection && askID < P2P.lastIndexID) {
+		while (this.peer.doLeaderElection && askID < P2P.lastIndexID && askID < this.peer.id+5) {
 			askID++;
 			this.peer.electStat.setText("search IDs: " + askID);
 			try {
