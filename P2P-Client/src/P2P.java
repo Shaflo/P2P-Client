@@ -18,10 +18,10 @@ class P2P implements ActionListener {
 			/************/
 
 	/* Settings */
-	static int defaultPort = 3333;
 	static String defaultLeader = "10.10.10.1";
 	static boolean startAsLeader = true;
-	static int peerAnz = 1;
+	static int defaultPort = 3333;
+	static int peerAnz = 3;
 	static int maxKnownPeers = 4;
 	static int firstIndexID = 1;
 	static int lastIndexID = 7;
@@ -241,6 +241,7 @@ class P2P implements ActionListener {
 			this.chatInTA.setText("");
 		} else if (ae.getSource() == this.chatSend) {								// SEND MSG
 			try {
+				System.out.println(Integer.parseInt(this.chatID.getText()));
 				this.send(Integer.parseInt(this.chatID.getText()), this.getMSG(8, new byte[] {}));
 			} catch (NumberFormatException | IOException e) {
 				e.printStackTrace();
@@ -256,29 +257,24 @@ class P2P implements ActionListener {
 
 	public static void main(String[] args) throws Exception {
 		
-		// starting leader peer
-		if (startAsLeader) {
-			P2P peerLeader = new P2P(3333, "localhost");
-			peerLeader.startPeer();
-		}
+		P2P[] peer = new P2P[peerAnz];
 		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException ie) {
-			ie.printStackTrace();
-		}
-		
-		// starting normal peers
-		if (peerAnz > 1) {
-			P2P[] peer = new P2P[peerAnz-1];
-			for (int i = 0; i < peerAnz-1; i++) {
-				peer[i] = new P2P((defaultPort+1+i), defaultLeader);
-				peer[i].startPeer();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException ie) {
-					ie.printStackTrace();
-				}
+		for (int i = 0; i < peerAnz; i++) {
+			
+			if (i < 1 && startAsLeader) {
+				peer[i] = new P2P(defaultPort, "localhost");
+			} else if (i < 1) {
+				peer[i] = new P2P(defaultPort, defaultLeader);
+			} else {
+				peer[i] = new P2P(defaultPort+i, defaultLeader);
+			}
+			
+			peer[i].startPeer();
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ie) {
+				ie.printStackTrace();
 			}
 		}
 	}
@@ -295,11 +291,11 @@ class P2P implements ActionListener {
 		ServerThread server = new ServerThread(this);
 		new Thread(server).start();
 
-		/* PEER THREAD*/
+		/* PEER THREAD */
 		PeerThread peer = new PeerThread(this);
 		new Thread(peer).start();
 
-		/* SHOW PEER LIST*/
+		/* SHOW PEER LIST */
 		this.showList();
 	}
 
@@ -579,7 +575,7 @@ class P2P implements ActionListener {
 			/*******************/
 
 	byte[] getMSG(int tag, byte[] rec) {
-
+		
 		if (tag == 1) {																						// S 1
 			byte[] msg = {1, 0,
 				this.ipA[0], this.ipA[1] , this.ipA[2], this.ipA[3],
@@ -591,21 +587,45 @@ class P2P implements ActionListener {
 			byte[] msg = new byte[36];
 			msg[0] = (byte) 2;
 			msg[1] = (byte) 1;
+			
+			for (int i = 0; i < this.list.length; i++) {
+				
+				if (this.list[i][0] == rec[2] && this.list[i][1] == rec[3] &&
+						this.list[i][2] == rec[4] && this.list[i][3] == rec[5] &&
+						this.list[i][4] == rec[6] && this.list[i][5] == rec[7]) {							// schon in Liste vorhanden
+					msg[2] = this.list[i][6];
+					msg[3] = this.list[i][7];
+					for (int j = 0; j < 8; j++) {
+						msg[j+4] = this.list[0][j];
+					}
+					for (int j = 0; j < 8; j++) {
+						msg[j+12] = this.list[1][j];
+					}
+					for (int j = 0; j < 8; j++) {
+						msg[j+20] = this.list[2][j];
+					}
+					for (int j = 0; j < 8; j++) {
+						msg[j+28] = this.list[3][j];
+					}
+					return msg;
+				}
+			}
 			byte[] newID = twoToByte(idCounter);
 			msg[2] = newID[0];
 			msg[3] = newID[1];
-			for (int i = 0; i < 8; i++) {
-				msg[i+4] = this.list[0][i];
+			for (int j = 0; j < 8; j++) {
+				msg[j+4] = this.list[0][j];
 			}
-			for (int i = 0; i < 8; i++) {
-				msg[i+12] = this.list[1][i];
+			for (int j = 0; j < 8; j++) {
+				msg[j+12] = this.list[1][j];
 			}
-			for (int i = 0; i < 8; i++) {
-				msg[i+20] = this.list[2][i];
+			for (int j = 0; j < 8; j++) {
+				msg[j+20] = this.list[2][j];
 			}
-			for (int i = 0; i < 8; i++) {
-				msg[i+28] = this.list[3][i];
+			for (int j = 0; j < 8; j++) {
+				msg[j+28] = this.list[3][j];
 			}
+			
 			return msg;
 		}
 
@@ -777,8 +797,7 @@ class P2P implements ActionListener {
 				
 				if (this.list[i][0] == newPeer[0] && this.list[i][1] == newPeer[1] &&
 						this.list[i][2] == newPeer[2] && this.list[i][3] == newPeer[3] &&
-						this.list[i][4] == newPeer[4] && this.list[i][5] == newPeer[5] &&
-						this.list[i][6] == newPeer[6] && this.list[i][7] == newPeer[7]) {						// schon in Liste vorhanden
+						this.list[i][4] == newPeer[4] && this.list[i][5] == newPeer[5]) {						// schon in Liste vorhanden
 					System.out.println("LIST: ALREADY KNOW " + Arrays.toString(newPeer));
 					this.showList();
 					return;

@@ -32,7 +32,7 @@ class PeerThread implements Runnable {
 				try {
 					this.peer.sendMSG(this.peer.leader, P2P.defaultPort, this.peer.getMSG(1, null));
 				} catch (Exception e) {
-					e.printStackTrace();
+					System.out.println("...");
 				}
 			}
 			
