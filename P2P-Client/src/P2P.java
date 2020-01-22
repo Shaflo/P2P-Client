@@ -675,6 +675,7 @@ class P2P implements ActionListener {
 					this.ipA[0], this.ipA[1], this.ipA[2], this.ipA[3],
 					this.portA[0], this.portA[1], this.idA[0], this.idA[1],
 					rec[10], rec[11]};
+			this.addList(new byte[] {rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], 1});
 			return msg;
 		}
 

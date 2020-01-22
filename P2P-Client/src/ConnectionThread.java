@@ -28,7 +28,6 @@ class ConnectionThread implements Runnable {
 				if (ans != null) {
 					if (ans[0] == (byte) 7) {
 						System.out.println("yeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-						
 						boolean newMSG = true;
 						Iterator<byte[]> itr = this.peer.searches.iterator();
 						while (itr.hasNext()) {
