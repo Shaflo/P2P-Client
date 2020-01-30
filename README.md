@@ -84,8 +84,29 @@ Tag: 10 (1 byte)
 Version: 1 (1 byte)  
 IPv4+Port+ID (8 byte)  
 ```
+#### Time Synchronization
+```
+Leader → Peer (TellMeYourTimeMSG):  
+Tag: 11 (1 byte)  
+Version: 1 (1 byte)  
+IPv4+Port+ID (8 byte)  
+```
+```
+Peer → Leader (HereIsMyTimeMSG):  
+Tag: 12 (1 byte)  
+Version: 1 (1 byte)  
+IPv4+Port+ID (8 byte)
+Time (8 byte)  
+```
+```
+Leader → Peer (HereIsYourNewTimeMSG):  
+Tag: 13 (1 byte)  
+Version: 1 (1 byte)  
+IPv4+Port+ID (8 byte)
+Time (8 byte)
+```
 
-## Search Algorithm 
+## Search Algorithm
 
 - Peer fragt die Nachbarn  
 - Fall 1: Nachbar hat SearchID bekommen  
@@ -104,6 +125,12 @@ IPv4+Port+ID (8 byte)
 1. The Peer asks all higher IDs with Tag 9  
 2. If a higher ID answer with Tag 5, this peer will take the leader election. we are finish  
 3. We are leader, when we cannot find a peer with higher ID. We send Tag10 (IAmLeaderMessage) to all Peers  
+
+## Time Synchronization
+
+1. Leader asks every Peer for the time
+2. Peers answer the Leader
+3. Leader calculate the Time and tell tell the all Peers
 
 ## Dictionary
 SourceID: ID des suchenden Knoten  

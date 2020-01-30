@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import javax.swing.*;
@@ -22,7 +25,7 @@ class P2P implements ActionListener {
 	static int defaultPort = 3333;
 	static int peerAnz = 3;
 	static int maxKnownPeers = 4;
-	static int firstIndexID = 1;
+	static int firstIndexID = 0;
 	static int lastIndexID = 7;
 
 	/* Peer */
@@ -41,6 +44,8 @@ class P2P implements ActionListener {
 	boolean doSearch;
 	int searchID;
 	LinkedList<byte[]> searches;
+	SimpleDateFormat dateFormat;
+	Date date;
 
 	/* GUI */
 	JFrame frame;
@@ -54,6 +59,7 @@ class P2P implements ActionListener {
 	JLabel infoID;
 	JLabel infoIP;
 	JLabel infoPort;
+	JLabel infoTime;
 	JPanel listP;					// List Panel
 	JLabel listL;
 	JTextArea listTA;
@@ -65,6 +71,7 @@ class P2P implements ActionListener {
 	JLabel electLabel;
 	JTextField electStat;
 	JButton electButton;
+	JButton startSync;
 	JPanel chatP;					// Chat Panel
 	JPanel chatInP;
 	JTextArea chatInTA;
@@ -101,6 +108,10 @@ class P2P implements ActionListener {
 		this.infoPanel.add(this.infoIP);
 		this.infoPort = new JLabel("   Port: ");
 		this.infoPanel.add(this.infoPort);
+		this.dateFormat = new SimpleDateFormat("HH:mm:ss");
+		this.date = new Date();
+		this.infoTime = new JLabel("   Time: " + this.dateFormat.format(date));
+		this.infoPanel.add(this.infoTime);
 		this.midPanel = new JPanel();
 		this.midPanel.setLayout(new BoxLayout(this.midPanel, BoxLayout.X_AXIS));
 		this.midPanel.add(this.infoPanel);
@@ -139,6 +150,9 @@ class P2P implements ActionListener {
 		this.electButton = new JButton("start Voting");
 		this.electButton.addActionListener(this);
 		this.electPanel.add(this.electButton);
+		this.startSync = new JButton("startTimeSync");
+		this.startSync.addActionListener(this);
+		this.electPanel.add(this.startSync);
 		this.contentPane.add(this.electPanel);
 		this.chatP = new JPanel();																					// Chat Panel
 		this.chatP.setLayout(new BoxLayout(this.chatP, BoxLayout.Y_AXIS));
@@ -201,8 +215,9 @@ class P2P implements ActionListener {
 		byte[] tempB = twoToByte(this.port);
 		this.portA[0] = tempB[0];
 		this.portA[1] = tempB[1];
-		this.id = 0;												// ID Integer
+		this.id = -1;												// ID Integer
 		this.idA = new byte[2];										// ID Byte Array
+		this.idA = twoToByte(this.id);
 		this.list = new byte[maxKnownPeers][9];						// Peer list
 		for (int i = 0; i < this.list.length; i++) {
 			for (int j = 0; j < this.list.length; j++) {
@@ -210,7 +225,7 @@ class P2P implements ActionListener {
 			}
 		}
 		this.doSearch = false;										// Search Status
-		this.searchID = 1000;										// searchIDs
+		this.searchID = 0;											// searchIDs
 		this.searches = new LinkedList<byte[]>();					// search List
 
 		/*   Update Dashboard   */
@@ -245,6 +260,8 @@ class P2P implements ActionListener {
 			} catch (NumberFormatException | IOException e) {
 				e.printStackTrace();
 			}
+		} else if (ae.getSource() == this.startSync) {								// Sync Time
+			this.startTimeSync();
 		}
 	}
 
@@ -562,6 +579,21 @@ class P2P implements ActionListener {
 			defaultPort = twoToInt(new byte[] {rec[6], rec[7]});
 			this.leaderStatus.setText("          leader:" + this.leader + ":" + defaultPort);
 		}
+		
+		else if (rec[0] == 11) {																			// R 11
+			System.out.println("[HANDLE] R 11");
+			return this.getMSG(12, rec);
+		}
+		
+		else if (rec[0] == 12) {																			// R 12
+			System.out.println("[HANDLE] R 12");
+			//TODO collect all times and calculate
+		}
+		
+		else if (rec[0] == 13) {																			// R 13
+			System.out.println("[HANDLE] R 13");
+			//TODO set this time as your new time
+		}
 
 		System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));							// ERROR
 		return null;
@@ -731,6 +763,62 @@ class P2P implements ActionListener {
 			msg[9] = this.idA[1];
 			return msg;
 		}
+		
+		else if (tag == 11) {																				// S 11
+			System.out.println("[GET] G 11");
+			byte[] msg = new byte[10];
+			msg[0] = (byte) 11;
+			msg[1] = (byte) 1;
+			msg[2] = this.ipA[0];
+			msg[3] = this.ipA[1];
+			msg[4] = this.ipA[2];
+			msg[5] = this.ipA[3];
+			msg[6] = this.portA[0];
+			msg[7] = this.portA[1];
+			msg[8] = this.idA[0];
+			msg[9] = this.idA[1];
+			return msg;
+		}
+		
+		else if (tag == 12) {																				// S 12
+			System.out.println("[GET] G 12");
+			byte[] msg = new byte[18];
+			msg[0] = (byte) 12;
+			msg[1] = (byte) 1;
+			msg[2] = this.ipA[0];
+			msg[3] = this.ipA[1];
+			msg[4] = this.ipA[2];
+			msg[5] = this.ipA[3];
+			msg[6] = this.portA[0];
+			msg[7] = this.portA[1];
+			msg[8] = this.idA[0];
+			msg[9] = this.idA[1];
+			byte[] time = getTimeByte();
+			for (int i = 0; i < time.length; i++) {
+				msg[10+i] = time[i];
+			}
+			return msg;
+		}
+		
+		else if (tag == 13) {																				// S 13
+			System.out.println("[GET] G 13");
+			byte[] msg = new byte[10];
+			msg[0] = (byte) 13;
+			msg[1] = (byte) 1;
+			msg[2] = this.ipA[0];
+			msg[3] = this.ipA[1];
+			msg[4] = this.ipA[2];
+			msg[5] = this.ipA[3];
+			msg[6] = this.portA[0];
+			msg[7] = this.portA[1];
+			msg[8] = this.idA[0];
+			msg[9] = this.idA[1];
+			byte[] calcTime = calcTime();
+			for (int i = 0; i < calcTime.length; i++) {
+				msg[10+i] = calcTime[i];
+			}
+			return msg;
+		}
 
 		System.out.println("!!!!!!!!!!!!!!!!!!!ERROR: getMSG TAG: " + tag);									// ERROR
 		return null;
@@ -743,7 +831,6 @@ class P2P implements ActionListener {
 			/********************/
 
 	void search(int whoIs) {
-
 		SearchThread searcher = new SearchThread(this, whoIs);
 		new Thread(searcher).start();
 	}
@@ -758,9 +845,20 @@ class P2P implements ActionListener {
 		ElectionThread leaderElect = new ElectionThread(this);
 		new Thread(leaderElect).start();
 	}
+	
+	
+	
+			/******************************/
+			/*   START TIME SYNCHRONIZE   */
+			/******************************/
+	
+	void startTimeSync() {
+		TimeThread sync = new TimeThread(this);
+		new Thread(sync).start();
+	}
 
 
-
+	
 			/*****************/
 			/*   PEER LIST   */
 			/*****************/
@@ -845,7 +943,19 @@ class P2P implements ActionListener {
 			/***************/
 			/*   HELPERS   */
 			/***************/
-
+	
+	byte[] getTimeByte() {
+		byte[] time = new byte[8];
+		//TODO
+		return time;
+	}
+	
+	byte[] calcTime() {
+		byte[] time = new byte[8];
+		//TODO
+		return time;
+	}
+	
 	String getLocalIP() {
 		String lIP = "";
 

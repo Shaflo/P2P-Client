@@ -1,3 +1,5 @@
+import java.util.Date;
+
 class PeerThread implements Runnable {
 	
 	P2P peer;
@@ -52,6 +54,15 @@ class PeerThread implements Runnable {
 			} else {
 				timeA++;
 			}
+			
+			
+			
+			/********************/
+			/*   TIME REFRESH   */
+			/********************/
+			
+			this.peer.date = new Date();
+			this.peer.infoTime.setText("   Time: " + this.peer.dateFormat.format(this.peer.date));
 			
 			
 			
