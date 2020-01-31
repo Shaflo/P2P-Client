@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -46,6 +45,7 @@ class P2P implements ActionListener {
 	LinkedList<byte[]> searches;
 	SimpleDateFormat dateFormat;
 	Date date;
+	byte[][] time;
 
 	/* GUI */
 	JFrame frame;
@@ -227,6 +227,12 @@ class P2P implements ActionListener {
 		this.doSearch = false;										// Search Status
 		this.searchID = 0;											// searchIDs
 		this.searches = new LinkedList<byte[]>();					// search List
+		this.time = new byte[1+lastIndexID-firstIndexID][8];
+		for (int i = 0; i < this.time.length; i++) {
+			for (int j = 0; j < this.time[0].length; j++) {
+				time[i][j] = 0;
+			}
+		}
 
 		/*   Update Dashboard   */
 		this.infoIP.setText("   IP: " + this.ip);
@@ -587,7 +593,13 @@ class P2P implements ActionListener {
 		
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
-			//TODO collect all times and calculate
+			for (int i = 0; i < this.time.length; i++) {
+				if (time[i][7] == 0) {
+					for (int j = 0; j < this.time[i].length; j++) {
+						time[i][j] = rec[10+j];
+					}
+				}
+			}
 		}
 		
 		else if (rec[0] == 13) {																			// R 13
