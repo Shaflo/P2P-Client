@@ -19,10 +19,10 @@ class P2P implements ActionListener {
 			/************/
 
 	/* Settings */
-	static String defaultLeader = "10.10.10.1";
+	static String defaultLeader = "localhost";
 	static boolean startAsLeader = true;
 	static int defaultPort = 3333;
-	static int peerAnz = 3;
+	static int peerAnz = 1;
 	static int maxKnownPeers = 4;
 	static int firstIndexID = 0;
 	static int lastIndexID = 7;
