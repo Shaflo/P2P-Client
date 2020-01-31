@@ -5,7 +5,7 @@ import java.util.Date;
 public class TimeThread implements Runnable {
 	
 	P2P peer;
-	byte []  finalTime; //length = 8
+	byte[]  finalTime = new byte[8];
 	
 	TimeThread(P2P _peer) {
 		this.peer = _peer;
@@ -15,26 +15,18 @@ public class TimeThread implements Runnable {
 		/*
 		 * Create message tag 11
 		 */																						// EDIT
-		byte[] askTimeA = new byte[10];
-		askTimeA[0] = (byte)11;
-		askTimeA[1] = (byte)1;
-		askTimeA[2] = this.peer.ipA[0];
-		askTimeA[3] = this.peer.ipA[1];
-		askTimeA[4] = this.peer.ipA[2];
-		askTimeA[5] = this.peer.ipA[3];
-		askTimeA[6] = this.peer.portA[0];
-		askTimeA[7] = this.peer.portA[1];
-		askTimeA[8] = this.peer.idA[0];
-		askTimeA[9] = this.peer.idA[1];
 		
-		//byte[] askTimeA = this.peer.getMSG(11, null);
+		byte[] askTimeA = this.peer.getMSG(11, null);
 		
 		/*
 		 * Send tag10 to all peers with id < leader's id												// to all IDs
 		 */
 		int askID = P2P.firstIndexID; //start from smallest ID
-		while (askID < this.peer.id) { //until reach leader's id
+		while (askID < P2P.lastIndexID) { //until reach leader's id										//edit
 			//System.out.println("askID " + askID); 
+			
+																							// send every message at the same time (need more threads)
+			
 				try {
 					this.peer.send(askID, askTimeA); //send tag11 to peer
 				} catch (IOException e) {
@@ -43,6 +35,10 @@ public class TimeThread implements Runnable {
 				}
 				askID++; //increase id for next peer
 		}
+		
+		
+		
+		// 5sec wait
 		
 		/*
 		 * Calculating standard time
@@ -82,32 +78,19 @@ public class TimeThread implements Runnable {
 		 * Create message tag 13
 		 */
 		
-		byte[] sendTimeA = new byte[10];
-		sendTimeA[0] = (byte)13;
-		sendTimeA[1] = (byte)1;
-		sendTimeA[2] = this.peer.ipA[0];
-		sendTimeA[3] = this.peer.ipA[1];
-		sendTimeA[4] = this.peer.ipA[2];
-		sendTimeA[5] = this.peer.ipA[3];
-		sendTimeA[6] = this.peer.portA[0];
-		sendTimeA[7] = this.peer.portA[1];
-		sendTimeA[8] = this.peer.idA[0];
-		sendTimeA[9] = this.peer.idA[1];
+		byte[] sendTimeA = this.peer.getMSG(13, finalTime);
 		//insert final time array in the message
-		for (int i = 0; i < 8; i ++) {
-			sendTimeA[9 + i] = finalTime[i];
-		}
-		
+
 		/*
-		 * Send tag13 to all peers with id < leader's id															// to all IDs
+		 * Send tag13 to all peers with id < leader's id											// to all IDs
 		 */
 		int anounceID = P2P.firstIndexID;
-		while (anounceID < this.peer.id) {
+		while (anounceID < P2P.lastIndexID) {														// edit from peerID to lastindex
 			System.out.println("anounceID " + anounceID);
 				try {
 					this.peer.send(anounceID, sendTimeA);
 				} catch (IOException e) {
-					System.out.println("Could not send Time to " + askID);
+					System.out.println("Could not send Time to " + anounceID);
 					e.printStackTrace();
 				}
 				anounceID++;
@@ -125,7 +108,7 @@ public class TimeThread implements Runnable {
 	}
 	
 	byte[] longtoBytes(long data) {
-		 return new byte[]{
+		return new byte[]{
 		 (byte) ((data >> 56) & 0xff),
 		 (byte) ((data >> 48) & 0xff),
 		 (byte) ((data >> 40) & 0xff),

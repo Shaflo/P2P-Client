@@ -19,13 +19,13 @@ class P2P implements ActionListener {
 			/************/
 
 	/* Settings */
-	static String defaultLeader = "10.10.10.1";
+	static String defaultLeader = "192.168.75.42";
 	static boolean startAsLeader = true;
 	static int defaultPort = 3333;
 	static int peerAnz = 3;
 	static int maxKnownPeers = 4;
 	static int firstIndexID = 0;
-	static int lastIndexID = 7;
+	static int lastIndexID = 2;
 
 	/* Peer */
 	static int idCounter = firstIndexID;
@@ -593,6 +593,8 @@ class P2P implements ActionListener {
 		
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
+			// check my time with peer time and store just the difference
+			// store in long[]
 			for (int i = 0; i < this.time.length; i++) {
 				if (time[i][7] == 0) {
 					for (int j = 0; j < this.time[i].length; j++) {
@@ -600,11 +602,14 @@ class P2P implements ActionListener {
 					}
 				}
 			}
+			return null;
 		}
 		
 		else if (rec[0] == 13) {																			// R 13
 			System.out.println("[HANDLE] R 13");
-			//TODO set this time as your new time
+			//TODO check the difference between this time and the receiving time and set
+			// timedifference to peertime
+			return null;
 		}
 
 		System.out.println("!!! FEHLER: handleMSG() rec=" + Arrays.toString(rec));							// ERROR
@@ -809,12 +814,13 @@ class P2P implements ActionListener {
 			for (int i = 0; i < time.length; i++) {
 				msg[10+i] = time[i];
 			}
+			//TODO store the time i send for calculate when receiving tag 13
 			return msg;
 		}
 		
 		else if (tag == 13) {																				// S 13
 			System.out.println("[GET] G 13");
-			byte[] msg = new byte[10];
+			byte[] msg = new byte[18];
 			msg[0] = (byte) 13;
 			msg[1] = (byte) 1;
 			msg[2] = this.ipA[0];
@@ -825,10 +831,14 @@ class P2P implements ActionListener {
 			msg[7] = this.portA[1];
 			msg[8] = this.idA[0];
 			msg[9] = this.idA[1];
+			for (int i = 0; i < 8; i++) {
+				msg[10 + i] = rec[i];
+			}
+			/*
 			byte[] calcTime = calcTime();
 			for (int i = 0; i < calcTime.length; i++) {
 				msg[10+i] = calcTime[i];
-			}
+			}*/
 			return msg;
 		}
 
