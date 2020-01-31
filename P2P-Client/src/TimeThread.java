@@ -3,30 +3,30 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 public class TimeThread implements Runnable {
-	
+
 	P2P peer;
 	byte[]  finalTime = new byte[8];
-	
+
 	TimeThread(P2P _peer) {
 		this.peer = _peer;
 	}
-	
+
 	public void run() {
 		/*
 		 * Create message tag 11
 		 */																						// EDIT
-		
+
 		byte[] askTimeA = this.peer.getMSG(11, null);
-		
+
 		/*
 		 * Send tag10 to all peers with id < leader's id												// to all IDs
 		 */
 		int askID = P2P.firstIndexID; //start from smallest ID
 		while (askID < P2P.lastIndexID) { //until reach leader's id										//edit
-			//System.out.println("askID " + askID); 
-			
+			//System.out.println("askID " + askID);
+
 																							// send every message at the same time (need more threads)
-			
+
 				try {
 					this.peer.send(askID, askTimeA); //send tag11 to peer
 				} catch (IOException e) {
@@ -35,20 +35,20 @@ public class TimeThread implements Runnable {
 				}
 				askID++; //increase id for next peer
 		}
-		
-		
-		
+
+
+
 		// 5sec wait
-		
+
 		/*
 		 * Calculating standard time
 		 * "Time" array is list of time (byte arr) collected from peer, "time"'s length = leader's id - 1, each element is an array of length 8
 		 * Convert "time" to an array of long number
 		 * Calculate the average of these long numbers
-		 * Convert the average back to an array (length = 8) 
+		 * Convert the average back to an array (length = 8)
 		 */
 		if (this.peer.time[0][0] != 0) {
-			
+
 			/*
 			 * Convert list of time array to a long array
 			 */
@@ -56,7 +56,7 @@ public class TimeThread implements Runnable {
 			for (int i = 0; i < this.peer.id - 1; i++) {
 				timeList[i] = convertByteArrayToLong(this.peer.time[i]);
 			}
-			
+
 			/*
 			 * Calculate average time
 			 */
@@ -73,11 +73,11 @@ public class TimeThread implements Runnable {
 			long average = sum / counter;
 			finalTime = longtoBytes(average);
 		}
-		
+
 		/*
 		 * Create message tag 13
 		 */
-		
+
 		byte[] sendTimeA = this.peer.getMSG(13, finalTime);
 		//insert final time array in the message
 
@@ -96,17 +96,17 @@ public class TimeThread implements Runnable {
 				anounceID++;
 		}
 	}
-	
-	
+
+
 	/*
 	 * Converting functions
 	 */
 	long convertByteArrayToLong(byte[] data){
 	    ByteBuffer byteBuffer = ByteBuffer.wrap(data);
-	    byteBuffer.flip(); 
+	    byteBuffer.flip();
 	    return byteBuffer.getLong();
 	}
-	
+
 	byte[] longtoBytes(long data) {
 		return new byte[]{
 		 (byte) ((data >> 56) & 0xff),

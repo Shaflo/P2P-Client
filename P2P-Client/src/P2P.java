@@ -19,10 +19,10 @@ class P2P implements ActionListener {
 			/************/
 
 	/* Settings */
-	static String defaultLeader = "192.168.75.42";
+	static String defaultLeader = "localhost";
 	static boolean startAsLeader = true;
 	static int defaultPort = 3333;
-	static int peerAnz = 3;
+	static int peerAnz = 1;
 	static int maxKnownPeers = 4;
 	static int firstIndexID = 0;
 	static int lastIndexID = 2;
@@ -585,12 +585,12 @@ class P2P implements ActionListener {
 			defaultPort = twoToInt(new byte[] {rec[6], rec[7]});
 			this.leaderStatus.setText("          leader:" + this.leader + ":" + defaultPort);
 		}
-		
+
 		else if (rec[0] == 11) {																			// R 11
 			System.out.println("[HANDLE] R 11");
 			return this.getMSG(12, rec);
 		}
-		
+
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
 			// check my time with peer time and store just the difference
@@ -604,7 +604,7 @@ class P2P implements ActionListener {
 			}
 			return null;
 		}
-		
+
 		else if (rec[0] == 13) {																			// R 13
 			System.out.println("[HANDLE] R 13");
 			//TODO check the difference between this time and the receiving time and set
@@ -780,7 +780,7 @@ class P2P implements ActionListener {
 			msg[9] = this.idA[1];
 			return msg;
 		}
-		
+
 		else if (tag == 11) {																				// S 11
 			System.out.println("[GET] G 11");
 			byte[] msg = new byte[10];
@@ -796,7 +796,7 @@ class P2P implements ActionListener {
 			msg[9] = this.idA[1];
 			return msg;
 		}
-		
+
 		else if (tag == 12) {																				// S 12
 			System.out.println("[GET] G 12");
 			byte[] msg = new byte[18];
@@ -817,7 +817,7 @@ class P2P implements ActionListener {
 			//TODO store the time i send for calculate when receiving tag 13
 			return msg;
 		}
-		
+
 		else if (tag == 13) {																				// S 13
 			System.out.println("[GET] G 13");
 			byte[] msg = new byte[18];
@@ -867,20 +867,20 @@ class P2P implements ActionListener {
 		ElectionThread leaderElect = new ElectionThread(this);
 		new Thread(leaderElect).start();
 	}
-	
-	
-	
+
+
+
 			/******************************/
 			/*   START TIME SYNCHRONIZE   */
 			/******************************/
-	
+
 	void startTimeSync() {
 		TimeThread sync = new TimeThread(this);
 		new Thread(sync).start();
 	}
 
 
-	
+
 			/*****************/
 			/*   PEER LIST   */
 			/*****************/
@@ -965,19 +965,19 @@ class P2P implements ActionListener {
 			/***************/
 			/*   HELPERS   */
 			/***************/
-	
+
 	byte[] getTimeByte() {
 		byte[] time = new byte[8];
 		//TODO
 		return time;
 	}
-	
+
 	byte[] calcTime() {
 		byte[] time = new byte[8];
 		//TODO
 		return time;
 	}
-	
+
 	String getLocalIP() {
 		String lIP = "";
 
