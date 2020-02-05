@@ -14,18 +14,16 @@ public class TimeThread implements Runnable {
 	public void run() {
 		/*
 		 * Create message tag 11
-		 */																						// EDIT
+		 */
 
 		byte[] askTimeA = this.peer.getMSG(11, null);
 
 		/*
-		 * Send tag10 to all peers with id < leader's id												// to all IDs
+		 * Send tag10 to all peers
 		 */
 		int askID = P2P.firstIndexID; //start from smallest ID
-		while (askID < P2P.lastIndexID) { //until reach leader's id										//edit
+		while (askID < P2P.lastIndexID) {
 			//System.out.println("askID " + askID);
-
-																							// send every message at the same time (need more threads)
 
 				try {
 					this.peer.send(askID, askTimeA); //send tag11 to peer
@@ -38,8 +36,13 @@ public class TimeThread implements Runnable {
 
 
 
-		// 5sec wait
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException ie) {
+			ie.printStackTrace();
+		}
 
+		
 		/*
 		 * Calculating standard time
 		 * "Time" array is list of time (byte arr) collected from peer, "time"'s length = leader's id - 1, each element is an array of length 8
@@ -47,11 +50,12 @@ public class TimeThread implements Runnable {
 		 * Calculate the average of these long numbers
 		 * Convert the average back to an array (length = 8)
 		 */
+		/*
 		if (this.peer.time[0][0] != 0) {
 
 			/*
 			 * Convert list of time array to a long array
-			 */
+			 *//*
 			long [] timeList = new long [this.peer.id - 1];
 			for (int i = 0; i < this.peer.id - 1; i++) {
 				timeList[i] = convertByteArrayToLong(this.peer.time[i]);
@@ -59,7 +63,7 @@ public class TimeThread implements Runnable {
 
 			/*
 			 * Calculate average time
-			 */
+			 *//*
 			Date date = new Date();
 			long myTime = date.getTime();
 			long sum = myTime; // sum get the value of leader's time
@@ -72,20 +76,42 @@ public class TimeThread implements Runnable {
 			}
 			long average = sum / counter;
 			finalTime = longtoBytes(average);
+		}*/
+		
+		
+		long newSum = 0l;
+		int newCount = 0;
+		for (int i = 0; i < this.peer.timelist.length; i++) {
+			if (this.peer.timelist[i][0] != 0) {
+				newCount++;
+				newSum += convertByteArrayToLong(new byte[] {this.peer.timelist[i][16], this.peer.timelist[i][17],
+						this.peer.timelist[i][18], this.peer.timelist[i][19], this.peer.timelist[i][20],
+						this.peer.timelist[i][21], this.peer.timelist[i][22], this.peer.timelist[i][23]});
+			}
 		}
+		long newAverage = newSum / newCount;
 
 		/*
 		 * Create message tag 13
 		 */
-
+		/*
 		byte[] sendTimeA = this.peer.getMSG(13, finalTime);
 		//insert final time array in the message
 
 		/*
 		 * Send tag13 to all peers with id < leader's id											// to all IDs
 		 */
+		
+		
+		//--------------------------------------------------------------------------------------------------------------
+		//TODO
+		/*
+		 * Should Send to all Peers in peer.timelist (time is the time in timelist + newAverage)
+		 */
 		int anounceID = P2P.firstIndexID;
 		while (anounceID < P2P.lastIndexID) {														// edit from peerID to lastindex
+			
+			
 			System.out.println("anounceID " + anounceID);
 				try {
 					this.peer.send(anounceID, sendTimeA);
@@ -94,6 +120,16 @@ public class TimeThread implements Runnable {
 					e.printStackTrace();
 				}
 				anounceID++;
+		}
+		
+		//--------------------------------------------------------------------------------------------------------
+		
+		
+		//Clean TimeList
+		for (int i = 0; i < this.peer.timelist.length; i++) {
+			for (int j = 0; j < this.peer.timelist[i].length; j++) {
+				this.peer.timelist[i][j] = 0;
+			}
 		}
 	}
 
