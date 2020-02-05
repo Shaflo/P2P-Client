@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class TimeThread implements Runnable {
 
@@ -22,10 +23,10 @@ public class TimeThread implements Runnable {
 		byte[] askTimeA = this.peer.getMSG(11, null);
 
 		/*
-		 * Send tag10 to all peers
+		 * Send tag11 to all peers
 		 */
 		int askID = P2P.firstIndexID; //start from smallest ID
-		while (askID <= this.peer.id) {
+		while (askID < this.peer.id) {
 			//System.out.println("askID " + askID);
 
 				try {
@@ -65,6 +66,8 @@ public class TimeThread implements Runnable {
 			}
 		}
 		long newAverage = newSum / newCount;
+		
+		System.out.println(newAverage + " <----- NEW AVERAGE");
 
 
 		/*
@@ -75,11 +78,21 @@ public class TimeThread implements Runnable {
 		byte[] sendTimeA = new byte[8];
 		
 		while(this.peer.timelist[i][0] != 0) {
+			
 			long cach = convertByteArrayToLong(new byte[] {this.peer.timelist[i][8], this.peer.timelist[i][9], 
 					this.peer.timelist[i][10], this.peer.timelist[i][11], this.peer.timelist[i][12], 
 					this.peer.timelist[i][13], this.peer.timelist[i][14], this.peer.timelist[i][15]});
+			System.out.println("CACHE: -----> " + cach + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 			cach += newAverage;
+			
+			
 			byte[] newTime = longtoBytes(cach);
+			
+			System.out.println("ggggggggggggggggggggggg" + Arrays.toString(newTime));
+			
+			
+			
+			
 			sendTimeA = this.peer.getMSG(13, newTime);
 			try {
 				this.peer.sendMSG(("" + (this.peer.timelist[i][0]&0xFF) + "."
