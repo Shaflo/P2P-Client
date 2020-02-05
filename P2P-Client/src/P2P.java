@@ -286,12 +286,12 @@ class P2P implements ActionListener {
 			/************/
 
 	public static void main(String[] args) throws Exception {
-		
-		
+
+
 		P2P[] peer = new P2P[peerAnz];
 
 		for (int i = 0; i < peerAnz; i++) {
-			
+
 			if (i < 1 && startAsLeader) {
 				peer[i] = new P2P(defaultPort, "localhost");
 			} else if (i < 1) {
@@ -602,27 +602,27 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
-			
+
 			/*
 			 * save peerip+port+id+peertime+differenceFromMyTime
 			 * */
-			
+
 			for (int i = 0; i < this.timelist.length; i++) {
 				if (this.timelist[i][0] == 0) {
 					for (int k = 0; k < 16; k++) {								// save ip+port+id+recTime
 						this.timelist[i][k] = rec[2+k];
 					}
 					long otherTime = byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]});
-					
+
 					long dif = (this.myTimeLong - otherTime);
 					System.out.println("DIFFRENT BETWEEN MYTIME-12TIME = " + dif);
-					
+
 					byte[] diff = longToByte(dif);
-					
+
 					for (int k = 0; k < 8; k++) {								// save diff
 						this.timelist[i][k+16] = diff[k];
 					}
-					
+
 					return null;
 				}
 			}
@@ -633,11 +633,9 @@ class P2P implements ActionListener {
 		else if (rec[0] == 13) {																			// R 13
 			System.out.println("[HANDLE] R 13");
 			// calc different between the time i send and get
-			long average = (byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]}) 
+			long average = (byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]})
 					- byteToLong(this.sendTime));
-			System.out.println("CALC " + byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]}) +
-			" - " + byteToLong(this.sendTime) + " = " + average);
-			// calculate the difference to my time
+			System.out.println("Peer " + this.id + " set Time " + average);
 			this.myTimeLong += average;
 			return null;
 		}
@@ -934,7 +932,6 @@ class P2P implements ActionListener {
 				newPeer[3] == this.ipA[3] && newPeer[4] == this.portA[0] &&
 				newPeer[5] == this.portA[1] && newPeer[6] == this.idA[0] &&
 				newPeer[7] == this.idA[1]) {																	// mich selbst nicht adden
-			System.out.println("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII bin selbst schon drin");
 			return;
 		}
 		if (newPeer[0] != 0) {
@@ -990,7 +987,7 @@ class P2P implements ActionListener {
 			/***************/
 			/*   HELPERS   */
 			/***************/
-	
+
 	static byte[] longToByte(long data) {
 		byte[] x = new byte[]{
 				 (byte) ((data >> 56) & 0xff),
@@ -1004,12 +1001,12 @@ class P2P implements ActionListener {
 				 };
 		return x;
 	}
-	
+
 	static long byteToLong(byte[] data){
 		System.out.println("converting byte " + Arrays.toString(data) + " to long!!!!!!!!!!!!!!");
 	    return ByteBuffer.wrap(data).getLong();
 	}
-	
+
 	byte[] getTimeByte(long x) {
 		byte[] time = new byte[8];
 		longToByte(x);

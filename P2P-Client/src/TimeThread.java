@@ -15,11 +15,10 @@ public class TimeThread implements Runnable {
 		/*
 		 * Create message tag 11
 		 */
-		
+
 		System.out.println("#########################################################################################");
 		System.out.println("##################################################################################################################################################");
-		System.out.println("################################################################################################");
-		
+
 		byte[] askTimeA = this.peer.getMSG(11, null);
 
 		/*
@@ -46,7 +45,7 @@ public class TimeThread implements Runnable {
 			ie.printStackTrace();
 		}
 
-		
+
 		/*
 		 * Calculating standard time
 		 * "Time" array is list of time (byte arr) collected from peer, "time"'s length = leader's id - 1, each element is an array of length 8
@@ -66,33 +65,26 @@ public class TimeThread implements Runnable {
 			}
 		}
 		long newAverage = newSum / newCount;
-		
+
 		System.out.println(newAverage + " <----- NEW AVERAGE");
 
 
 		/*
 		 * Send message tag 13
 		 */
-		
+
 		int i = 0;
 		byte[] sendTimeA = new byte[8];
-		
+
 		while(this.peer.timelist[i][0] != 0) {
-			
-			long cach = convertByteArrayToLong(new byte[] {this.peer.timelist[i][8], this.peer.timelist[i][9], 
-					this.peer.timelist[i][10], this.peer.timelist[i][11], this.peer.timelist[i][12], 
+
+			long cach = convertByteArrayToLong(new byte[] {this.peer.timelist[i][8], this.peer.timelist[i][9],
+					this.peer.timelist[i][10], this.peer.timelist[i][11], this.peer.timelist[i][12],
 					this.peer.timelist[i][13], this.peer.timelist[i][14], this.peer.timelist[i][15]});
-			System.out.println("CACHE: -----> " + cach + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 			cach += newAverage;
-			
-			
+
 			byte[] newTime = longtoBytes(cach);
-			
-			System.out.println("ggggggggggggggggggggggg" + Arrays.toString(newTime));
-			
-			
-			
-			
+
 			sendTimeA = this.peer.getMSG(13, newTime);
 			try {
 				this.peer.sendMSG(("" + (this.peer.timelist[i][0]&0xFF) + "."
@@ -106,11 +98,11 @@ public class TimeThread implements Runnable {
 			}
 			i++;
 		}
-		
-		
 
-		
-		
+
+
+
+
 		//Clean TimeList
 		for (int m = 0; m < this.peer.timelist.length; m++) {
 			for (int j = 0; j < this.peer.timelist[m].length; j++) {
