@@ -303,7 +303,7 @@ class P2P implements ActionListener {
 			peer[i].startPeer();
 
 			try {
-				Thread.sleep(8000);
+				Thread.sleep(1000);
 			} catch (InterruptedException ie) {
 				ie.printStackTrace();
 			}
