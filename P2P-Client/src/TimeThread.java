@@ -42,7 +42,7 @@ public class TimeThread implements Runnable {
 			ie.printStackTrace();
 		}
 
-		
+
 		/*
 		 * Calculating standard time
 		 * "Time" array is list of time (byte arr) collected from peer, "time"'s length = leader's id - 1, each element is an array of length 8
@@ -77,8 +77,8 @@ public class TimeThread implements Runnable {
 			long average = sum / counter;
 			finalTime = longtoBytes(average);
 		}*/
-		
-		
+
+
 		long newSum = 0l;
 		int newCount = 0;
 		for (int i = 0; i < this.peer.timelist.length; i++) {
@@ -101,8 +101,8 @@ public class TimeThread implements Runnable {
 		/*
 		 * Send tag13 to all peers with id < leader's id											// to all IDs
 		 */
-		
-		
+
+
 		//--------------------------------------------------------------------------------------------------------------
 		//TODO
 		/*
@@ -110,8 +110,8 @@ public class TimeThread implements Runnable {
 		 */
 		int anounceID = P2P.firstIndexID;
 		while (anounceID < P2P.lastIndexID) {														// edit from peerID to lastindex
-			
-			
+
+
 			System.out.println("anounceID " + anounceID);
 				try {
 					this.peer.send(anounceID, sendTimeA);
@@ -121,20 +121,16 @@ public class TimeThread implements Runnable {
 				}
 				anounceID++;
 		}
-		
-<<<<<<< HEAD
+
 		//--------------------------------------------------------------------------------------------------------
-		
-		
+
+
 		//Clean TimeList
 		for (int i = 0; i < this.peer.timelist.length; i++) {
 			for (int j = 0; j < this.peer.timelist[i].length; j++) {
 				this.peer.timelist[i][j] = 0;
 			}
 		}
-=======
-		//TODO clean this.timelist
->>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 	}
 
 

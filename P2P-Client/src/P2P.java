@@ -49,11 +49,8 @@ class P2P implements ActionListener {
 	byte[][] time;
 	byte[][] timelist;
 	byte[] myTime;
-<<<<<<< HEAD
 	byte[] sendTime;
 	long myTimeLong = 0l;
-=======
->>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 
 	/* GUI */
 	JFrame frame;
@@ -241,12 +238,8 @@ class P2P implements ActionListener {
 				time[i][j] = 0;
 			}
 		}
-<<<<<<< HEAD
 		this.timelist = new byte[1+lastIndexID-firstIndexID][24];	// IP+Port+ID+PeerTime+Difference
 		this.sendTime = new byte[8];
-=======
-		this.timelist = new byte[1+lastIndexID-firstIndexID][32];	// IP+Port+ID+PeerTime+MyTime+Difference
->>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 
 		/*   Update Dashboard   */
 		this.infoIP.setText("   IP: " + this.ip);
@@ -607,35 +600,27 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
-			
+
 			/*
 			 * save peerip+port+id+peertime+differenceFromMyTime
 			 * */
-			
+
 			for (int i = 0; i < this.timelist.length; i++) {
 				if (this.timelist[i][0] == 0) {
-<<<<<<< HEAD
 					for (int k = 0; k < 16; k++) {								// save ip+port+id
-=======
-					for (int k = 0; k < 16; k++) {
->>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 						this.timelist[i][k] = rec[2+k];
 					}
 					long x = this.date.getTime();
 					long otherTime = byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]});
-					
+
 					long dif = x - otherTime;
-					
+
 					byte[] diff = longToByte(dif);
-					
-<<<<<<< HEAD
+
 					for (int k = 0; k < 8; k++) {								// save diff
-=======
-					for (int k = 0; k < 8; k++) {
->>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 						this.timelist[i][k+16] = diff[k];
 					}
-					
+
 					return null;
 				}
 			}
@@ -646,10 +631,10 @@ class P2P implements ActionListener {
 		else if (rec[0] == 13) {																			// R 13
 			System.out.println("[HANDLE] R 13");
 			// calc diffrent between the time i send and get
-			long average = (byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16]}) 
+			long average = (byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16]})
 					- byteToLong(this.sendTime));
 			// calculate the diffrence to my time
-			this.myTimeLong = ((byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], }) 
+			this.myTimeLong = ((byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], })
 					+ average));
 			return null;
 		}
@@ -1007,7 +992,7 @@ class P2P implements ActionListener {
 			/***************/
 			/*   HELPERS   */
 			/***************/
-	
+
 	static byte[] longToByte(long data) {
 		return new byte[]{
 		 (byte) ((data >> 56) & 0xff),
@@ -1020,18 +1005,14 @@ class P2P implements ActionListener {
 		 (byte) ((data >> 0) & 0xff),
 		 };
 	}
-	
+
 	static long byteToLong(byte[] data){
 	    ByteBuffer byteBuffer = ByteBuffer.wrap(data);
 	    byteBuffer.flip();
 	    return byteBuffer.getLong();
 	}
-	
-<<<<<<< HEAD
+
 	byte[] getTimeByte(long x) {
-=======
-	byte[] getTimeByte() {
->>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 		byte[] time = new byte[8];
 		longToByte(x);
 		return time;
