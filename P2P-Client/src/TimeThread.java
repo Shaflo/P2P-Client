@@ -122,6 +122,7 @@ public class TimeThread implements Runnable {
 				anounceID++;
 		}
 		
+<<<<<<< HEAD
 		//--------------------------------------------------------------------------------------------------------
 		
 		
@@ -131,6 +132,9 @@ public class TimeThread implements Runnable {
 				this.peer.timelist[i][j] = 0;
 			}
 		}
+=======
+		//TODO clean this.timelist
+>>>>>>> 01dff9ba2352d9fb1d129b57055ec6543160bedb
 	}
 
 
