@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Date;
 
 public class TimeThread implements Runnable {
 
@@ -15,14 +14,18 @@ public class TimeThread implements Runnable {
 		/*
 		 * Create message tag 11
 		 */
-
+		
+		System.out.println("#########################################################################################");
+		System.out.println("##################################################################################################################################################");
+		System.out.println("################################################################################################");
+		
 		byte[] askTimeA = this.peer.getMSG(11, null);
 
 		/*
 		 * Send tag10 to all peers
 		 */
 		int askID = P2P.firstIndexID; //start from smallest ID
-		while (askID < P2P.lastIndexID) {
+		while (askID <= this.peer.id) {
 			//System.out.println("askID " + askID);
 
 				try {
@@ -42,7 +45,7 @@ public class TimeThread implements Runnable {
 			ie.printStackTrace();
 		}
 
-
+		
 		/*
 		 * Calculating standard time
 		 * "Time" array is list of time (byte arr) collected from peer, "time"'s length = leader's id - 1, each element is an array of length 8
@@ -50,34 +53,6 @@ public class TimeThread implements Runnable {
 		 * Calculate the average of these long numbers
 		 * Convert the average back to an array (length = 8)
 		 */
-		/*
-		if (this.peer.time[0][0] != 0) {
-
-			/*
-			 * Convert list of time array to a long array
-			 *//*
-			long [] timeList = new long [this.peer.id - 1];
-			for (int i = 0; i < this.peer.id - 1; i++) {
-				timeList[i] = convertByteArrayToLong(this.peer.time[i]);
-			}
-
-			/*
-			 * Calculate average time
-			 *//*
-			Date date = new Date();
-			long myTime = date.getTime();
-			long sum = myTime; // sum get the value of leader's time
-			int counter = 1; //in case not all peer send back the time --> need to count number of times collected, start at 1 to count for leader
-			for (int i = 0; i < this.peer.id; i++) {
-				if(timeList[i] != 0) { //check if there is time
-					sum = sum + timeList[i];
-					counter++;
-				}
-			}
-			long average = sum / counter;
-			finalTime = longtoBytes(average);
-		}*/
-
 
 		long newSum = 0l;
 		int newCount = 0;
@@ -91,56 +66,51 @@ public class TimeThread implements Runnable {
 		}
 		long newAverage = newSum / newCount;
 
+
 		/*
-		 * Create message tag 13
+		 * Send message tag 13
 		 */
-		/*
-		byte[] sendTimeA = this.peer.getMSG(13, finalTime);
-		//insert final time array in the message
-
-		/*
-		 * Send tag13 to all peers with id < leader's id											// to all IDs
-		 */
-
-
-		//--------------------------------------------------------------------------------------------------------------
-		//TODO
-		/*
-		 * Should Send to all Peers in peer.timelist (time is the time in timelist + newAverage)
-		 */
-		int anounceID = P2P.firstIndexID;
-		while (anounceID < P2P.lastIndexID) {														// edit from peerID to lastindex
-
-
-			System.out.println("anounceID " + anounceID);
-				try {
-					this.peer.send(anounceID, sendTimeA);
-				} catch (IOException e) {
-					System.out.println("Could not send Time to " + anounceID);
-					e.printStackTrace();
-				}
-				anounceID++;
+		
+		int i = 0;
+		byte[] sendTimeA = new byte[8];
+		
+		while(this.peer.timelist[i][0] != 0) {
+			long cach = convertByteArrayToLong(new byte[] {this.peer.timelist[i][8], this.peer.timelist[i][9], 
+					this.peer.timelist[i][10], this.peer.timelist[i][11], this.peer.timelist[i][12], 
+					this.peer.timelist[i][13], this.peer.timelist[i][14], this.peer.timelist[i][15]});
+			cach += newAverage;
+			byte[] newTime = longtoBytes(cach);
+			sendTimeA = this.peer.getMSG(13, newTime);
+			try {
+				this.peer.sendMSG(("" + (this.peer.timelist[i][0]&0xFF) + "."
+						+ (this.peer.timelist[i][1]&0xFF) + "." + (this.peer.timelist[i][2]&0xFF) + "."
+						+ (this.peer.timelist[i][3]&0xFF)),
+						P2P.twoToInt(new byte[] {this.peer.timelist[i][4], this.peer.timelist[i][5]}),
+						sendTimeA);
+			} catch (IOException e) {
+				System.out.println("Could not send Time!!!");
+				e.printStackTrace();
+			}
+			i++;
 		}
+		
+		
 
-		//--------------------------------------------------------------------------------------------------------
-
-
+		
+		
 		//Clean TimeList
-		for (int i = 0; i < this.peer.timelist.length; i++) {
-			for (int j = 0; j < this.peer.timelist[i].length; j++) {
-				this.peer.timelist[i][j] = 0;
+		for (int m = 0; m < this.peer.timelist.length; m++) {
+			for (int j = 0; j < this.peer.timelist[m].length; j++) {
+				this.peer.timelist[m][j] = 0;
 			}
 		}
 	}
-
 
 	/*
 	 * Converting functions
 	 */
 	long convertByteArrayToLong(byte[] data){
-	    ByteBuffer byteBuffer = ByteBuffer.wrap(data);
-	    byteBuffer.flip();
-	    return byteBuffer.getLong();
+	    return ByteBuffer.wrap(data).getLong();
 	}
 
 	byte[] longtoBytes(long data) {

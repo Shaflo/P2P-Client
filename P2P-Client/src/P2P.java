@@ -20,13 +20,13 @@ class P2P implements ActionListener {
 			/************/
 
 	/* Settings */
-	static String defaultLeader = "localhost";
+	static String defaultLeader = "192.168.75.36";
 	static boolean startAsLeader = true;
 	static int defaultPort = 3333;
-	static int peerAnz = 1;
+	static int peerAnz = 2;
 	static int maxKnownPeers = 4;
 	static int firstIndexID = 0;
-	static int lastIndexID = 2;
+	static int lastIndexID = 5;
 
 	/* Peer */
 	static int idCounter = firstIndexID;
@@ -50,7 +50,7 @@ class P2P implements ActionListener {
 	byte[][] timelist;
 	byte[] myTime;
 	byte[] sendTime;
-	long myTimeLong = 0l;
+	long myTimeLong;
 
 	/* GUI */
 	JFrame frame;
@@ -240,6 +240,7 @@ class P2P implements ActionListener {
 		}
 		this.timelist = new byte[1+lastIndexID-firstIndexID][24];	// IP+Port+ID+PeerTime+Difference
 		this.sendTime = new byte[8];
+		this.myTimeLong = new Date().getTime();
 
 		/*   Update Dashboard   */
 		this.infoIP.setText("   IP: " + this.ip);
@@ -285,7 +286,8 @@ class P2P implements ActionListener {
 			/************/
 
 	public static void main(String[] args) throws Exception {
-
+		
+		
 		P2P[] peer = new P2P[peerAnz];
 
 		for (int i = 0; i < peerAnz; i++) {
@@ -600,27 +602,27 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
-
+			
 			/*
 			 * save peerip+port+id+peertime+differenceFromMyTime
 			 * */
-
+			
 			for (int i = 0; i < this.timelist.length; i++) {
 				if (this.timelist[i][0] == 0) {
-					for (int k = 0; k < 16; k++) {								// save ip+port+id
+					for (int k = 0; k < 16; k++) {								// save ip+port+id+recTime
 						this.timelist[i][k] = rec[2+k];
 					}
 					long x = this.date.getTime();
 					long otherTime = byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]});
-
+					
 					long dif = x - otherTime;
-
+					
 					byte[] diff = longToByte(dif);
-
+					
 					for (int k = 0; k < 8; k++) {								// save diff
 						this.timelist[i][k+16] = diff[k];
 					}
-
+					
 					return null;
 				}
 			}
@@ -630,11 +632,11 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 13) {																			// R 13
 			System.out.println("[HANDLE] R 13");
-			// calc diffrent between the time i send and get
-			long average = (byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16]})
+			// calc different between the time i send and get
+			long average = (byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16]}) 
 					- byteToLong(this.sendTime));
-			// calculate the diffrence to my time
-			this.myTimeLong = ((byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], })
+			// calculate the difference to my time
+			this.myTimeLong = ((byteToLong(new byte[] {rec[9], rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], }) 
 					+ average));
 			return null;
 		}
@@ -837,7 +839,7 @@ class P2P implements ActionListener {
 			msg[7] = this.portA[1];
 			msg[8] = this.idA[0];
 			msg[9] = this.idA[1];
-			byte[] time = getTimeByte(this.myTimeLong);
+			byte[] time = longToByte(this.myTimeLong);
 			for (int i = 0; i < time.length; i++) {
 				msg[10+i] = time[i];
 				this.sendTime[0] = time[i];
@@ -861,11 +863,6 @@ class P2P implements ActionListener {
 			for (int i = 0; i < 8; i++) {
 				msg[10 + i] = rec[i];
 			}
-			/*
-			byte[] calcTime = calcTime();
-			for (int i = 0; i < calcTime.length; i++) {
-				msg[10+i] = calcTime[i];
-			}*/
 			return msg;
 		}
 
@@ -992,35 +989,29 @@ class P2P implements ActionListener {
 			/***************/
 			/*   HELPERS   */
 			/***************/
-
+	
 	static byte[] longToByte(long data) {
-		return new byte[]{
-		 (byte) ((data >> 56) & 0xff),
-		 (byte) ((data >> 48) & 0xff),
-		 (byte) ((data >> 40) & 0xff),
-		 (byte) ((data >> 32) & 0xff),
-		 (byte) ((data >> 24) & 0xff),
-		 (byte) ((data >> 16) & 0xff),
-		 (byte) ((data >> 8) & 0xff),
-		 (byte) ((data >> 0) & 0xff),
-		 };
+		byte[] x = new byte[]{
+				 (byte) ((data >> 56) & 0xff),
+				 (byte) ((data >> 48) & 0xff),
+				 (byte) ((data >> 40) & 0xff),
+				 (byte) ((data >> 32) & 0xff),
+				 (byte) ((data >> 24) & 0xff),
+				 (byte) ((data >> 16) & 0xff),
+				 (byte) ((data >> 8) & 0xff),
+				 (byte) ((data >> 0) & 0xff),
+				 };
+		return x;
 	}
-
+	
 	static long byteToLong(byte[] data){
-	    ByteBuffer byteBuffer = ByteBuffer.wrap(data);
-	    byteBuffer.flip();
-	    return byteBuffer.getLong();
+		System.out.println("converting byte " + Arrays.toString(data) + " to long!!!!!!!!!!!!!!");
+	    return ByteBuffer.wrap(data).getLong();
 	}
-
+	
 	byte[] getTimeByte(long x) {
 		byte[] time = new byte[8];
 		longToByte(x);
-		return time;
-	}
-
-	byte[] calcTime() {
-		byte[] time = new byte[8];
-		//TODO
 		return time;
 	}
 

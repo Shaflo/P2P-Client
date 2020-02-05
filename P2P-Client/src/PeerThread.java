@@ -62,7 +62,8 @@ class PeerThread implements Runnable {
 			/********************/
 			
 			
-			this.peer.date = new Date();
+			this.peer.myTimeLong += 1000;
+			this.peer.date = new Date(this.peer.myTimeLong);
 			this.peer.infoTime.setText("   Time: " + this.peer.dateFormat.format(this.peer.date));
 			
 			
