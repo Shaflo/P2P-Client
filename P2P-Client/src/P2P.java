@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -46,6 +47,8 @@ class P2P implements ActionListener {
 	SimpleDateFormat dateFormat;
 	Date date;
 	byte[][] time;
+	byte[][] timelist;
+	byte[] myTime;
 
 	/* GUI */
 	JFrame frame;
@@ -233,6 +236,7 @@ class P2P implements ActionListener {
 				time[i][j] = 0;
 			}
 		}
+		this.timelist = new byte[1+lastIndexID-firstIndexID][32];	// IP+Port+ID+PeerTime+MyTime+Difference
 
 		/*   Update Dashboard   */
 		this.infoIP.setText("   IP: " + this.ip);
@@ -593,15 +597,31 @@ class P2P implements ActionListener {
 
 		else if (rec[0] == 12) {																			// R 12
 			System.out.println("[HANDLE] R 12");
-			// check my time with peer time and store just the difference
-			// store in long[]
-			for (int i = 0; i < this.time.length; i++) {
-				if (time[i][7] == 0) {
-					for (int j = 0; j < this.time[i].length; j++) {
-						time[i][j] = rec[10+j];
+			
+			/*
+			 * save peerip+port+id+peertime+differenceFromMyTime
+			 * */
+			
+			for (int i = 0; i < this.timelist.length; i++) {
+				if (this.timelist[i][0] == 0) {
+					for (int k = 0; k < 16; k++) {
+						this.timelist[i][k] = rec[2+k];
 					}
+					long x = this.date.getTime();
+					long otherTime = byteToLong(new byte[] {rec[10], rec[11], rec[12], rec[13], rec[14], rec[15], rec[16], rec[17]});
+					
+					long dif = x - otherTime;
+					
+					byte[] diff = longToByte(dif);
+					
+					for (int k = 0; k < 8; k++) {
+						this.timelist[i][k+16] = diff[k];
+					}
+					
+					return null;
 				}
 			}
+			System.out.println("!!!TimeList full");
 			return null;
 		}
 
@@ -965,7 +985,26 @@ class P2P implements ActionListener {
 			/***************/
 			/*   HELPERS   */
 			/***************/
-
+	
+	static byte[] longToByte(long data) {
+		return new byte[]{
+		 (byte) ((data >> 56) & 0xff),
+		 (byte) ((data >> 48) & 0xff),
+		 (byte) ((data >> 40) & 0xff),
+		 (byte) ((data >> 32) & 0xff),
+		 (byte) ((data >> 24) & 0xff),
+		 (byte) ((data >> 16) & 0xff),
+		 (byte) ((data >> 8) & 0xff),
+		 (byte) ((data >> 0) & 0xff),
+		 };
+	}
+	
+	static long byteToLong(byte[] data){
+	    ByteBuffer byteBuffer = ByteBuffer.wrap(data);
+	    byteBuffer.flip();
+	    return byteBuffer.getLong();
+	}
+	
 	byte[] getTimeByte() {
 		byte[] time = new byte[8];
 		//TODO

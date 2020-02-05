@@ -14,18 +14,16 @@ public class TimeThread implements Runnable {
 	public void run() {
 		/*
 		 * Create message tag 11
-		 */																						// EDIT
+		 */
 
 		byte[] askTimeA = this.peer.getMSG(11, null);
 
 		/*
-		 * Send tag10 to all peers with id < leader's id												// to all IDs
+		 * Send tag10 to all peers
 		 */
 		int askID = P2P.firstIndexID; //start from smallest ID
-		while (askID < P2P.lastIndexID) { //until reach leader's id										//edit
+		while (askID < P2P.lastIndexID) {
 			//System.out.println("askID " + askID);
-
-																							// send every message at the same time (need more threads)
 
 				try {
 					this.peer.send(askID, askTimeA); //send tag11 to peer
@@ -38,8 +36,13 @@ public class TimeThread implements Runnable {
 
 
 
-		// 5sec wait
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException ie) {
+			ie.printStackTrace();
+		}
 
+		
 		/*
 		 * Calculating standard time
 		 * "Time" array is list of time (byte arr) collected from peer, "time"'s length = leader's id - 1, each element is an array of length 8
@@ -95,6 +98,8 @@ public class TimeThread implements Runnable {
 				}
 				anounceID++;
 		}
+		
+		//TODO clean this.timelist
 	}
 
 
